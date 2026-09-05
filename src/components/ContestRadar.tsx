@@ -87,31 +87,31 @@ export const ContestRadar: React.FC<ContestRadarProps> = ({
     <section
       id="contests"
       aria-label="Contest Schedule and Notifications"
-      className={`w-full bg-paper border-b-2 border-borderline p-6 md:p-12 ${className}`}
+      className={`w-full bg-paper border-b-2 border-borderline p-3 sm:p-6 md:p-12 ${className}`}
     >
       <div className="border-2 border-borderline bg-surface">
         {/* Header */}
-        <div className="p-6 border-b-2 border-borderline flex flex-col md:flex-row md:items-center justify-between gap-4 font-space">
-          <div className="flex items-center gap-3">
-            <Radio className="w-5 h-5 text-brand-orange animate-pulse" />
+        <div className="p-4 sm:p-6 border-b-2 border-borderline flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 font-space">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <Radio className="w-4 h-4 sm:w-5 sm:h-5 text-brand-orange animate-pulse flex-shrink-0" />
             <div>
-              <h3 className="font-archivo uppercase text-xl md:text-2xl tracking-tight text-ink">
+              <h3 className="font-archivo uppercase text-lg sm:text-xl md:text-2xl tracking-tight text-ink">
                 CONTEST TELEMETRY RADAR
               </h3>
-              <p className="text-[11px] uppercase text-ink/70">
+              <p className="text-[10px] sm:text-[11px] uppercase text-ink/70">
                 UPCOMING ROUNDS & DEDICATED PLATFORM DISPATCH
               </p>
             </div>
           </div>
 
           {/* Platform Filter Tabs */}
-          <div className="flex flex-wrap items-center gap-1.5 text-xs">
+          <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 text-xs">
             {(["all", "leetcode", "codechef", "codeforces", "gfg"] as PlatformFilter[]).map((tab) => (
               <button
                 key={tab}
                 type="button"
                 onClick={() => setSelectedFilter(tab)}
-                className={`px-3 py-1 uppercase font-bold border-2 transition-colors ${
+                className={`px-2 py-0.5 sm:px-3 sm:py-1 uppercase font-bold text-[10px] sm:text-xs border-2 transition-colors ${
                   selectedFilter === tab
                     ? "bg-brand-orange text-black border-brand-orange font-bold"
                     : "bg-paper text-ink border-borderline hover:border-brand-orange hover:text-brand-orange"
@@ -126,7 +126,7 @@ export const ContestRadar: React.FC<ContestRadarProps> = ({
         {/* Contest List Grid */}
         <div className="divide-y-2 divide-borderline">
           {filteredContests.length === 0 ? (
-            <div className="p-8 text-center font-space text-sm text-ink/60 uppercase">
+            <div className="p-6 sm:p-8 text-center font-space text-xs sm:text-sm text-ink/60 uppercase">
               No upcoming scheduled rounds in this category.
             </div>
           ) : (
@@ -139,24 +139,24 @@ export const ContestRadar: React.FC<ContestRadarProps> = ({
               return (
                 <div
                   key={contest.id}
-                  className="p-6 hover:bg-white/[0.03] transition-colors font-space flex flex-col lg:flex-row lg:items-center justify-between gap-4"
+                  className="p-3.5 sm:p-6 hover:bg-white/[0.03] transition-colors font-space flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4"
                 >
                   {/* Left: Platform Badge, Title & Timing */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="border-2 border-borderline bg-paper px-2 py-0.5 text-[10px] font-bold uppercase text-ink">
+                    <div className="flex items-center gap-2 mb-1 sm:mb-2">
+                      <span className="border-2 border-borderline bg-paper px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase text-ink">
                         {contest.platform}
                       </span>
-                      <span className="text-[11px] text-brand-orange font-bold uppercase">
+                      <span className="text-[10px] sm:text-[11px] text-brand-orange font-bold uppercase">
                         DURATION: {durationHours}H
                       </span>
                     </div>
 
-                    <h4 className="font-archivo uppercase text-base md:text-xl text-ink tracking-tight truncate mb-1">
+                    <h4 className="font-archivo uppercase text-sm sm:text-base md:text-xl text-ink tracking-tight truncate mb-1">
                       {contest.name}
                     </h4>
 
-                    <div className="flex flex-wrap items-center gap-4 text-xs text-ink/70">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-[11px] sm:text-xs text-ink/70">
                       <div className="flex items-center gap-1.5">
                         <Calendar className="w-3.5 h-3.5 text-brand-orange" />
                         <span>
@@ -176,55 +176,57 @@ export const ContestRadar: React.FC<ContestRadarProps> = ({
                   </div>
 
                   {/* Right: Countdown & Actions */}
-                  <div className="flex flex-wrap items-center gap-4 lg:flex-shrink-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full lg:w-auto lg:flex-shrink-0">
                     {/* Countdown Timer */}
-                    <div className="border-2 border-borderline bg-paper px-4 py-2 text-center min-w-[130px]">
+                    <div className="border-2 border-borderline bg-paper px-3 py-1.5 sm:px-4 sm:py-2 text-center w-full sm:w-auto sm:min-w-[130px] flex sm:flex-col items-center sm:items-center justify-between sm:justify-center">
                       <div className="text-[9px] text-ink/60 font-bold uppercase">
                         STARTS IN
                       </div>
-                      <div className="text-sm font-bold text-brand-orange">
+                      <div className="text-xs sm:text-sm font-bold text-brand-orange">
                         {formatCountdown(contest.startTime)}
                       </div>
                     </div>
 
-                    {/* Alert Notification Toggle */}
-                    <button
-                      type="button"
-                      onClick={() => toggleAlert(contest)}
-                      disabled={nStatus === "loading"}
-                      className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full border-2 text-xs font-bold uppercase transition-all duration-150 transform hover:scale-105 disabled:opacity-70 disabled:cursor-wait ${
-                        nStatus === "ok"
-                          ? "bg-green-600 text-white border-green-600 shadow-[0_0_10px_#22c55e]"
-                          : nStatus === "error"
-                          ? "bg-red-600 text-white border-red-600"
-                          : isAlerted
-                          ? "bg-brand-orange text-black border-brand-orange font-bold shadow-[0_0_10px_#FF4D00]"
-                          : "bg-surface text-ink border-borderline hover:border-white hover:text-white"
-                      }`}
-                    >
-                      {nStatus === "loading" ? (
-                        <><Loader2 className="w-3.5 h-3.5 animate-spin" /><span>SENDING...</span></>
-                      ) : nStatus === "ok" ? (
-                        <><Check className="w-3.5 h-3.5" /><span>EMAIL SENT</span></>
-                      ) : nStatus === "error" ? (
-                        <><X className="w-3.5 h-3.5" /><span>FAILED</span></>
-                      ) : isAlerted ? (
-                        <><Check className="w-3.5 h-3.5" /><span>ALERT ARMED</span></>
-                      ) : (
-                        <><Bell className="w-3.5 h-3.5" /><span>NOTIFY ME</span></>
-                      )}
-                    </button>
+                    <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
+                      {/* Alert Notification Toggle */}
+                      <button
+                        type="button"
+                        onClick={() => toggleAlert(contest)}
+                        disabled={nStatus === "loading"}
+                        className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-full border-2 text-[11px] sm:text-xs font-bold uppercase transition-all duration-150 transform hover:scale-105 disabled:opacity-70 disabled:cursor-wait ${
+                          nStatus === "ok"
+                            ? "bg-green-600 text-white border-green-600 shadow-[0_0_10px_#22c55e]"
+                            : nStatus === "error"
+                            ? "bg-red-600 text-white border-red-600"
+                            : isAlerted
+                            ? "bg-brand-orange text-black border-brand-orange font-bold shadow-[0_0_10px_#FF4D00]"
+                            : "bg-surface text-ink border-borderline hover:border-white hover:text-white"
+                        }`}
+                      >
+                        {nStatus === "loading" ? (
+                          <><Loader2 className="w-3 h-3 animate-spin" /><span>SENDING...</span></>
+                        ) : nStatus === "ok" ? (
+                          <><Check className="w-3 h-3" /><span>EMAIL SENT</span></>
+                        ) : nStatus === "error" ? (
+                          <><X className="w-3 h-3" /><span>FAILED</span></>
+                        ) : isAlerted ? (
+                          <><Check className="w-3 h-3" /><span>ALERT ARMED</span></>
+                        ) : (
+                          <><Bell className="w-3 h-3" /><span>NOTIFY ME</span></>
+                        )}
+                      </button>
 
-                    {/* External Link Button */}
-                    <a
-                      href={contest.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full border-2 border-brand-orange bg-brand-orange text-black hover:bg-white hover:border-white text-xs font-bold uppercase transition-transform duration-150 transform hover:scale-105"
-                    >
-                      <span>REGISTER</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
+                      {/* External Link Button */}
+                      <a
+                        href={contest.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-full border-2 border-brand-orange bg-brand-orange text-black hover:bg-white hover:border-white text-[11px] sm:text-xs font-bold uppercase transition-transform duration-150 transform hover:scale-105 text-center"
+                      >
+                        <span>REGISTER</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
                   </div>
                 </div>
               );

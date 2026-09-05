@@ -17,7 +17,7 @@ export const PlatformList: React.FC<PlatformListProps> = ({
       className={`w-full bg-paper border-b-2 border-borderline ${className}`}
     >
       {/* Section Header */}
-      <div className="px-6 md:px-12 py-4 border-b-2 border-borderline bg-surface/50 flex items-center justify-between font-space text-xs uppercase text-ink">
+      <div className="px-4 sm:px-6 md:px-12 py-3 sm:py-4 border-b-2 border-borderline bg-surface/50 flex items-center justify-between font-space text-xs uppercase text-ink">
         <div className="flex items-center gap-2 font-bold">
           <span className="w-2.5 h-2.5 bg-brand-orange shadow-[0_0_8px_#FF4D00]" />
           <span>CONNECTED ACCOUNT PANELS [0{platforms.length}]</span>

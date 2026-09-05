@@ -47,25 +47,25 @@ export const StreakHeatmap: React.FC<StreakHeatmapProps> = ({
   return (
     <section
       aria-label="Solve Consistency Engine"
-      className={`w-full bg-paper border-b-2 border-borderline p-6 md:p-12 ${className}`}
+      className={`w-full bg-paper border-b-2 border-borderline p-3 sm:p-6 md:p-12 ${className}`}
     >
       <div className="border-2 border-borderline bg-surface">
         {/* Header with Title and Filter Tabs */}
-        <div className="px-6 py-5 border-b-2 border-borderline flex flex-col lg:flex-row lg:items-center justify-between gap-4 font-space">
-          <div className="flex items-center gap-3">
-            <Flame className="w-6 h-6 text-brand-orange" />
+        <div className="px-4 py-3 sm:px-6 sm:py-5 border-b-2 border-borderline flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 font-space">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-brand-orange flex-shrink-0" />
             <div>
-              <h3 className="font-archivo uppercase text-xl md:text-2xl tracking-tight text-ink">
+              <h3 className="font-archivo uppercase text-lg sm:text-xl md:text-2xl tracking-tight text-ink">
                 SOLVE CONSISTENCY ENGINE
               </h3>
-              <p className="text-[11px] uppercase text-ink/70">
+              <p className="text-[10px] sm:text-[11px] uppercase text-ink/70">
                 52-WEEK MULTI-PLATFORM MATRIX // {totalActive} ACTIVE DAYS ({consistencyPercent}% DEDICATION)
               </p>
             </div>
           </div>
 
           {/* Platform Filter Tabs */}
-          <div className="flex flex-wrap items-center gap-1.5 text-xs">
+          <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 text-xs">
             <span className="text-[10px] uppercase font-bold text-ink/50 mr-1 flex items-center gap-1">
               <Layers className="w-3 h-3" />
               VIEW:
@@ -75,7 +75,7 @@ export const StreakHeatmap: React.FC<StreakHeatmapProps> = ({
                 key={tab}
                 type="button"
                 onClick={() => setActiveFilter(tab)}
-                className={`px-3 py-1 uppercase font-bold border-2 transition-colors ${
+                className={`px-2 py-0.5 sm:px-3 sm:py-1 uppercase font-bold text-[10px] sm:text-xs border-2 transition-colors ${
                   activeFilter === tab
                     ? "bg-brand-orange text-black border-brand-orange font-bold"
                     : "bg-paper text-ink border-borderline hover:border-brand-orange hover:text-brand-orange"
@@ -87,36 +87,36 @@ export const StreakHeatmap: React.FC<StreakHeatmapProps> = ({
           </div>
         </div>
 
-        {/* Individual Platform Streaks Comparison Bar (All 5 Accounts Including GfG) */}
-        <div className="px-6 py-4 border-b-2 border-borderline bg-surface font-space text-xs grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        {/* Individual Platform Streaks Comparison Bar */}
+        <div className="px-3 py-3 sm:px-6 sm:py-4 border-b-2 border-borderline bg-surface font-space text-xs grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
           {streaksList.map((item, idx) => (
             <div
               key={`${item.platform}-${idx}`}
-              className={`border-2 p-3 transition-colors ${
+              className={`border-2 p-2.5 sm:p-3 transition-colors ${
                 activeFilter === item.platform
                   ? "bg-brand-orange/10 border-brand-orange"
                   : "bg-paper border-borderline"
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="font-bold uppercase text-ink">
+                <span className="font-bold uppercase text-ink text-[10px] sm:text-xs truncate">
                   {item.platform === "codechef"
                     ? (idx === 1 ? "CC (MAIN)" : "CC (COLLEGE)")
                     : item.platform}
                 </span>
-                <span className="text-[10px] text-brand-orange font-bold uppercase">
+                <span className="text-[9px] sm:text-[10px] text-brand-orange font-bold uppercase">
                   STREAK
                 </span>
               </div>
-              <div className="mt-1 flex items-baseline gap-2">
-                <span className="text-xl font-bold text-brand-orange">
+              <div className="mt-1 flex items-baseline gap-1 sm:gap-2">
+                <span className="text-base sm:text-xl font-bold text-brand-orange">
                   {item.currentStreak}D
                 </span>
-                <span className="text-[10px] text-ink/60 uppercase">
+                <span className="text-[9px] sm:text-[10px] text-ink/60 uppercase">
                   (REC: {item.longestStreak}D)
                 </span>
               </div>
-              <div className="text-[10px] text-ink/50 uppercase mt-0.5">
+              <div className="text-[9px] sm:text-[10px] text-ink/50 uppercase mt-0.5 truncate">
                 {item.totalActiveDays} ACTIVE DAYS
               </div>
             </div>
@@ -124,7 +124,7 @@ export const StreakHeatmap: React.FC<StreakHeatmapProps> = ({
         </div>
 
         {/* Heatmap Grid */}
-        <div className="p-6 overflow-x-auto bg-paper">
+        <div className="p-3 sm:p-6 overflow-x-auto bg-paper">
           <div className="min-w-[760px]">
             <div className="flex gap-[3px]">
               {weeks.map((week, wIdx) => (

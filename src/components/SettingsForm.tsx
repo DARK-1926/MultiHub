@@ -72,7 +72,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ className = "" }) =>
   return (
     <div className={`border-2 border-borderline bg-surface ${className}`}>
       {/* Header */}
-      <div className="p-6 border-b-2 border-borderline bg-surface font-space">
+      <div className="p-4 sm:p-6 border-b-2 border-borderline bg-surface font-space">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <UserCheck className="w-4 h-4 text-brand-orange" />
@@ -85,19 +85,19 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ className = "" }) =>
         <h3
           className="font-archivo uppercase text-ink tracking-tight"
           style={{
-            fontSize: "clamp(1.5rem, 3vw, 2.25rem)",
-            lineHeight: 0.9,
+            fontSize: "clamp(1.25rem, 3vw, 2.25rem)",
+            lineHeight: 1.0,
           }}
         >
           ACCOUNTS & DISPATCH
         </h3>
-        <p className="mt-2 text-xs text-ink/70 font-space uppercase">
+        <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs text-ink/70 font-space uppercase">
           Configure your connected platform identities and alert notifications.
         </p>
       </div>
 
       {/* Form with sharp dark inputs */}
-      <form onSubmit={handleSubmit} className="p-6 space-y-4 font-space bg-paper">
+      <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-3 sm:space-y-4 font-space bg-paper">
         {isLoading ? (
           <div className="py-8 flex items-center justify-center gap-2 text-ink/60 text-xs">
             <Loader2 className="w-4 h-4 animate-spin text-brand-orange" />
@@ -232,7 +232,7 @@ export const SettingsForm: React.FC<SettingsFormProps> = ({ className = "" }) =>
               <button
                 type="submit"
                 disabled={isSaving}
-                className="group inline-flex items-center gap-2 bg-brand-orange text-black hover:bg-white hover:border-white text-xs md:text-sm font-bold uppercase px-8 py-3 rounded-full border-2 border-brand-orange transition-transform duration-150 transform hover:scale-105 disabled:opacity-50"
+                className="group inline-flex items-center justify-center gap-2 bg-brand-orange text-black hover:bg-white hover:border-white text-xs md:text-sm font-bold uppercase px-6 sm:px-8 py-2.5 sm:py-3 rounded-full border-2 border-brand-orange transition-transform duration-150 transform hover:scale-105 disabled:opacity-50 w-full sm:w-auto"
               >
                 {isSaving ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />

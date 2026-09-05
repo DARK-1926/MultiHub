@@ -72,7 +72,7 @@ export default async function DashboardPage() {
     minutesAgo === 0 ? "Live connected just now" : `Last synced ${minutesAgo} mins ago`;
 
   return (
-    <main className="min-h-screen bg-paper text-ink flex flex-col selection:bg-brand-orange selection:text-black">
+    <main className="min-h-screen bg-paper text-ink flex flex-col selection:bg-brand-orange selection:text-black overflow-x-hidden">
       {/* Background cron keeper */}
       <CronKeeper />
 
@@ -111,9 +111,9 @@ export default async function DashboardPage() {
       <section
         id="coach"
         aria-label="Intelligence and Configuration"
-        className="w-full bg-paper border-b-2 border-ink p-6 md:p-12"
+        className="w-full bg-paper border-b-2 border-ink p-4 sm:p-6 md:p-12"
       >
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
           <div>
             <AiCoachCard initialRecommendations={recommendations} />
           </div>

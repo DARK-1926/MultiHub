@@ -115,19 +115,19 @@ export const StatsHero: React.FC<StatsHeroProps> = ({
         }}
       >
         {/* Top Status Badge */}
-        <div className="w-full flex items-center justify-between font-space text-[12px] uppercase tracking-wider text-ink/70 mb-2 md:mb-4">
+        <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-2 font-space text-[11px] md:text-[12px] uppercase tracking-wider text-ink/70 mb-2 md:mb-4">
           <div className="flex items-center gap-2">
-            <span className="inline-block w-2.5 h-2.5 bg-brand-orange shadow-[0_0_12px_#FF4D00] animate-pulse" />
-            <span className="font-bold text-ink">{userName.toUpperCase()} // UNIFIED CP & GIT MATRIX</span>
+            <span className="inline-block w-2 h-2 sm:w-2.5 sm:h-2.5 bg-brand-orange shadow-[0_0_12px_#FF4D00] animate-pulse" />
+            <span className="font-bold text-ink truncate">{userName.toUpperCase()} // UNIFIED CP & GIT MATRIX</span>
           </div>
-          <div className="font-bold text-brand-orange flex items-center gap-1.5 bg-brand-orange/10 px-2.5 py-1 border border-brand-orange/30 rounded">
-            <span className="inline-block w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]" />
-            <span className="text-[11px]">STATUS: REAL-TIME MONITORED</span>
+          <div className="self-start sm:self-auto font-bold text-brand-orange flex items-center gap-1.5 bg-brand-orange/10 px-2 py-0.5 sm:px-2.5 sm:py-1 border border-brand-orange/30 rounded">
+            <span className="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]" />
+            <span className="text-[10px] sm:text-[11px]">STATUS: REAL-TIME MONITORED</span>
           </div>
         </div>
 
         {/* Central 3D Streak Arena */}
-        <div className="relative py-8 md:py-14 text-center w-full flex items-center justify-center">
+        <div className="relative py-4 sm:py-8 md:py-14 text-center w-full flex items-center justify-center">
           {/* Left 3D Isometric Telemetry Plate */}
           <div
             className="hidden xl:flex absolute left-4 2xl:left-12 flex-col gap-1.5 text-left font-space text-[11px] bg-surface/85 backdrop-blur-md border-2 border-borderline p-4 rounded shadow-[0_10px_30px_rgba(0,0,0,0.8)] transform -rotate-1 hover:rotate-0 transition-all duration-300"
@@ -162,7 +162,7 @@ export const StatsHero: React.FC<StatsHeroProps> = ({
             <div
               className="font-archivo text-ink tracking-tight select-none transition-transform duration-200"
               style={{
-                fontSize: "clamp(5.5rem, 24vw, 13.5rem)",
+                fontSize: "clamp(3.75rem, 16vw, 13.5rem)",
                 lineHeight: 0.85,
                 letterSpacing: "-0.05em",
                 textShadow: `
@@ -179,9 +179,9 @@ export const StatsHero: React.FC<StatsHeroProps> = ({
             </div>
 
             <div
-              className="font-archivo uppercase text-brand-orange tracking-tighter mt-3 relative"
+              className="font-archivo uppercase text-brand-orange tracking-tighter mt-1 sm:mt-3 relative"
               style={{
-                fontSize: "clamp(1.75rem, 5.5vw, 3.25rem)",
+                fontSize: "clamp(1.15rem, 4vw, 3.25rem)",
                 lineHeight: 0.9,
                 textShadow: "0 0 20px rgba(255, 77, 0, 0.6), 0 0 40px rgba(255, 77, 0, 0.3)",
               }}
@@ -219,25 +219,25 @@ export const StatsHero: React.FC<StatsHeroProps> = ({
 
         {/* 2px Horizontal Rule and Metadata Row */}
         <div className="w-full" style={{ transform: "translateZ(20px)" }}>
-          <div className="w-full h-0 border-b-2 border-borderline mb-6 relative">
+          <div className="w-full h-0 border-b-2 border-borderline mb-4 sm:mb-6 relative">
             {/* Center orange laser spark on divider */}
             <span className="absolute left-1/2 -top-1 -translate-x-1/2 w-12 h-0.5 bg-brand-orange shadow-[0_0_10px_#FF4D00]" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 items-center justify-items-center md:justify-items-stretch gap-6 font-space text-xs md:text-sm text-ink">
+          <div className="grid grid-cols-1 md:grid-cols-3 items-center justify-items-center md:justify-items-stretch gap-3 sm:gap-6 font-space text-xs md:text-sm text-ink">
             {/* Left: Last Synced text */}
             <div className="text-center md:text-left flex flex-col justify-center">
-              <span className="text-ink/60 uppercase text-[11px] flex items-center gap-1.5 justify-center md:justify-start">
+              <span className="text-ink/60 uppercase text-[10px] sm:text-[11px] flex items-center gap-1.5 justify-center md:justify-start">
                 <Cpu className="w-3 h-3 text-brand-orange" />
                 Telemetry Status
               </span>
-              <span className="font-bold uppercase tracking-tight text-ink mt-0.5">
+              <span className="font-bold uppercase tracking-tight text-ink mt-0.5 text-xs sm:text-sm">
                 {lastSyncedText}
               </span>
             </div>
 
             {/* Center: Repurposed Rotating Indicator */}
-            <div className="flex justify-center transform hover:scale-105 transition-transform">
+            <div className="hidden sm:flex justify-center transform hover:scale-105 transition-transform">
               <RotatingIndicator
                 text="LIVE • SYNCED • LIVE • SYNCED • "
                 icon={<RotateCw className="w-5 h-5 text-ink" />}
@@ -247,9 +247,9 @@ export const StatsHero: React.FC<StatsHeroProps> = ({
 
             {/* Right: Total Problems Solved */}
             <div className="text-center md:text-right flex flex-col justify-center">
-              <span className="text-ink/60 uppercase text-[11px]">Cumulative Solves & Commits</span>
-              <span className="font-bold uppercase tracking-tight text-brand-orange mt-0.5">
-                {totalProblemsSolved.toLocaleString()} Combined Across 6 Accounts
+              <span className="text-ink/60 uppercase text-[10px] sm:text-[11px]">Cumulative Solves & Commits</span>
+              <span className="font-bold uppercase tracking-tight text-brand-orange mt-0.5 text-xs sm:text-sm">
+                {totalProblemsSolved.toLocaleString()} Solves & Commits
               </span>
             </div>
           </div>

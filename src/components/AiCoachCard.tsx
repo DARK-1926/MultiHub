@@ -214,8 +214,8 @@ export const AiCoachCard: React.FC<AiCoachCardProps> = ({
       className={`border-2 border-borderline bg-surface flex flex-col justify-between ${className}`}
     >
       {/* Header with Mode Switcher */}
-      <div className="p-6 border-b-2 border-borderline bg-surface font-space">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+      <div className="p-4 sm:p-6 border-b-2 border-borderline bg-surface font-space">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-2 sm:mb-3">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-brand-orange" />
             <span className="text-xs uppercase font-bold text-brand-orange">
@@ -228,7 +228,7 @@ export const AiCoachCard: React.FC<AiCoachCardProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab("chat")}
-              className={`px-3 py-1 uppercase font-bold border-2 transition-colors flex items-center gap-1.5 ${
+              className={`px-2.5 py-1 sm:px-3 sm:py-1 uppercase font-bold text-[11px] sm:text-xs border-2 transition-colors flex items-center gap-1.5 ${
                 activeTab === "chat"
                   ? "bg-brand-orange text-black border-brand-orange"
                   : "bg-paper text-ink border-borderline hover:border-brand-orange hover:text-brand-orange"
@@ -240,7 +240,7 @@ export const AiCoachCard: React.FC<AiCoachCardProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab("picks")}
-              className={`px-3 py-1 uppercase font-bold border-2 transition-colors flex items-center gap-1.5 ${
+              className={`px-2.5 py-1 sm:px-3 sm:py-1 uppercase font-bold text-[11px] sm:text-xs border-2 transition-colors flex items-center gap-1.5 ${
                 activeTab === "picks"
                   ? "bg-brand-orange text-black border-brand-orange"
                   : "bg-paper text-ink border-borderline hover:border-brand-orange hover:text-brand-orange"
@@ -255,48 +255,48 @@ export const AiCoachCard: React.FC<AiCoachCardProps> = ({
         <h3
           className="font-archivo uppercase text-ink tracking-tight"
           style={{
-            fontSize: "clamp(1.5rem, 3vw, 2.25rem)",
-            lineHeight: 0.9,
+            fontSize: "clamp(1.25rem, 3vw, 2.25rem)",
+            lineHeight: 1.0,
           }}
         >
           {activeTab === "chat" ? "AI COACH & ACCOUNTABILITY GUIDE" : "COACH RECOMMENDATIONS"}
         </h3>
-        <p className="mt-2 text-xs text-ink/70 font-space uppercase">
+        <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs text-ink/70 font-space uppercase">
           {activeTab === "chat"
             ? "Live mentor keeping you in check, sharpening your algorithmic intuition, and steering you to 1600+."
-            : "Targeted 1461 → 1600+ CodeChef & LeetCode medium/hard problem sequencing."}
+            : "Targeted CodeChef & LeetCode medium/hard problem sequencing."}
         </p>
 
         {/* Inference Model Toggle (Chat Mode Only) */}
         {activeTab === "chat" && (
-          <div className="flex flex-wrap items-center gap-2.5 mt-4 pt-3 border-t-2 border-borderline">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-3 pt-3 border-t-2 border-borderline">
             <span className="text-[10px] font-bold text-ink/60 uppercase tracking-wider">
               INFERENCE MODEL:
             </span>
-            <div className="inline-flex rounded border-2 border-borderline p-0.5 bg-paper gap-1">
+            <div className="grid grid-cols-2 sm:inline-flex rounded border-2 border-borderline p-0.5 bg-paper gap-1 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={() => setSelectedModel("groq")}
-                className={`px-3 py-1 text-[11px] font-bold uppercase tracking-wider transition-all rounded flex items-center gap-1.5 ${
+                className={`px-2 sm:px-3 py-1 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all rounded flex items-center justify-center gap-1 sm:gap-1.5 ${
                   selectedModel === "groq"
                     ? "bg-brand-orange text-black font-extrabold shadow-[0_0_12px_rgba(255,77,0,0.45)]"
                     : "text-ink/60 hover:text-ink hover:bg-white/5"
                 }`}
               >
-                <Zap className="w-3.5 h-3.5" />
-                <span>GROQ ⚡ (QWEN 3.8 / OSS)</span>
+                <Zap className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate">GROQ ⚡ (QWEN)</span>
               </button>
               <button
                 type="button"
                 onClick={() => setSelectedModel("gemini")}
-                className={`px-3 py-1 text-[11px] font-bold uppercase tracking-wider transition-all rounded flex items-center gap-1.5 ${
+                className={`px-2 sm:px-3 py-1 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all rounded flex items-center justify-center gap-1 sm:gap-1.5 ${
                   selectedModel === "gemini"
                     ? "bg-brand-orange text-black font-extrabold shadow-[0_0_12px_rgba(255,77,0,0.45)]"
                     : "text-ink/60 hover:text-ink hover:bg-white/5"
                 }`}
               >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>GEMINI ✨ (2.5 FLASH)</span>
+                <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate">GEMINI ✨ (FLASH)</span>
               </button>
             </div>
             <span className="text-[10px] text-brand-orange font-bold uppercase hidden md:inline ml-auto">
@@ -308,37 +308,37 @@ export const AiCoachCard: React.FC<AiCoachCardProps> = ({
 
       {/* Mode 1: Interactive Coach Chat */}
       {activeTab === "chat" && (
-        <div className="flex flex-col flex-1 min-h-[380px] bg-paper">
+        <div className="flex flex-col flex-1 min-h-[360px] sm:min-h-[380px] bg-paper">
           {/* Quick Prompt Chips */}
-          <div className="p-3 border-b-2 border-borderline bg-surface/50 flex items-center gap-2 overflow-x-auto text-[11px] font-space">
+          <div className="p-2 sm:p-3 border-b-2 border-borderline bg-surface/50 flex items-center gap-1.5 sm:gap-2 overflow-x-auto text-[10px] sm:text-[11px] font-space [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <span className="text-ink/40 font-bold uppercase whitespace-nowrap">PROMPTS:</span>
             <button
               type="button"
               onClick={() => handleSendMessage("How do I improve my rating on CodeChef and reach 3★?")}
-              className="border border-borderline bg-paper px-2.5 py-1 text-ink/80 hover:text-brand-orange hover:border-brand-orange whitespace-nowrap transition-colors"
+              className="border border-borderline bg-paper px-2 sm:px-2.5 py-1 text-ink/80 hover:text-brand-orange hover:border-brand-orange whitespace-nowrap transition-colors"
             >
-              🎯 Rating Improvement Strategy
+              🎯 Rating Strategy
             </button>
             <button
               type="button"
               onClick={() => handleSendMessage("Check my daily progress and streak. Am I slacking?")}
-              className="border border-borderline bg-paper px-2.5 py-1 text-ink/80 hover:text-brand-orange hover:border-brand-orange whitespace-nowrap transition-colors"
+              className="border border-borderline bg-paper px-2 sm:px-2.5 py-1 text-ink/80 hover:text-brand-orange hover:border-brand-orange whitespace-nowrap transition-colors"
             >
-              ⚡ Keep Me In Check
+              ⚡ Progress Check
             </button>
             <button
               type="button"
               onClick={() => handleSendMessage("How do I transition from LeetCode Mediums to solve Hards reliably?")}
-              className="border border-borderline bg-paper px-2.5 py-1 text-ink/80 hover:text-brand-orange hover:border-brand-orange whitespace-nowrap transition-colors"
+              className="border border-borderline bg-paper px-2 sm:px-2.5 py-1 text-ink/80 hover:text-brand-orange hover:border-brand-orange whitespace-nowrap transition-colors"
             >
-              🧠 Medium to Hard Strategy
+              🧠 Medium to Hard
             </button>
             <button
               type="button"
               onClick={() => handleSendMessage("Give me a targeted contest drill plan for upcoming rounds.")}
-              className="border border-borderline bg-paper px-2.5 py-1 text-ink/80 hover:text-brand-orange hover:border-brand-orange whitespace-nowrap transition-colors"
+              className="border border-borderline bg-paper px-2 sm:px-2.5 py-1 text-ink/80 hover:text-brand-orange hover:border-brand-orange whitespace-nowrap transition-colors"
             >
-              ⚔️ Contest Drill Plan
+              ⚔️ Contest Drill
             </button>
           </div>
 

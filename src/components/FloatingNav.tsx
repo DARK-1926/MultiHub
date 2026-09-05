@@ -58,7 +58,7 @@ export const FloatingNav: React.FC<FloatingNavProps> = ({
         {/* Center: Floating Pill Nav (Black Brutalist Glass / Surface) */}
         <nav
           aria-label="Main Navigation"
-          className="pointer-events-auto bg-surface/90 backdrop-blur-md text-ink rounded-full px-2 py-1.5 md:px-4 md:py-2 border-2 border-borderline shadow-nav-depth flex items-center gap-1 md:gap-2 overflow-x-auto max-w-[65vw] sm:max-w-none"
+          className="pointer-events-auto bg-surface/90 backdrop-blur-md text-ink rounded-full px-2 py-1 md:px-4 md:py-2 border-2 border-borderline shadow-nav-depth flex items-center gap-1 md:gap-2 overflow-x-auto max-w-[62vw] sm:max-w-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
         >
           {links.map((link) => {
             const isActive = activeHref === link.href;
@@ -66,7 +66,7 @@ export const FloatingNav: React.FC<FloatingNavProps> = ({
               <Link
                 key={link.label}
                 href={link.href}
-                className={`font-space text-[11px] md:text-[12px] tracking-tight uppercase whitespace-nowrap px-2.5 py-1 rounded-full transition-colors duration-150 ${
+                className={`font-space text-[10px] md:text-[12px] tracking-tight uppercase whitespace-nowrap px-2 py-0.5 md:px-2.5 md:py-1 rounded-full transition-colors duration-150 ${
                   isActive
                     ? "bg-brand-orange text-black font-bold"
                     : "text-ink/80 hover:bg-white/10 hover:text-ink"
@@ -79,10 +79,10 @@ export const FloatingNav: React.FC<FloatingNavProps> = ({
         </nav>
 
         {/* Right: Social & System Icons or User / Logout */}
-        <div className="pointer-events-auto hidden sm:flex items-center gap-3">
+        <div className="pointer-events-auto flex items-center gap-1.5 sm:gap-3">
           {userName ? (
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-borderline text-[11px] font-space text-ink/90">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-borderline text-[11px] font-space text-ink/90">
                 <UserIcon className="w-3 h-3 text-brand-orange" />
                 <span className="max-w-[100px] truncate">{userName}</span>
               </span>
@@ -90,22 +90,22 @@ export const FloatingNav: React.FC<FloatingNavProps> = ({
                 onClick={handleLogout}
                 disabled={loggingOut}
                 title="Log out"
-                className="p-2 border-2 border-borderline text-ink bg-surface hover:border-red-500 hover:text-red-500 transition-colors duration-150 disabled:opacity-50"
+                className="p-1.5 sm:p-2 border-2 border-borderline text-ink bg-surface hover:border-red-500 hover:text-red-500 transition-colors duration-150 disabled:opacity-50"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               <Link
                 href="/login"
-                className="px-3.5 py-1.5 border-2 border-borderline text-ink bg-surface hover:border-brand-orange hover:text-brand-orange font-space text-[11px] font-bold uppercase transition-colors duration-150"
+                className="px-2.5 py-1 sm:px-3.5 sm:py-1.5 border-2 border-borderline text-ink bg-surface hover:border-brand-orange hover:text-brand-orange font-space text-[10px] sm:text-[11px] font-bold uppercase transition-colors duration-150"
               >
                 Sign In
               </Link>
               <Link
                 href="/register"
-                className="px-3.5 py-1.5 bg-brand-orange text-black hover:bg-white font-space text-[11px] font-bold uppercase transition-colors duration-150"
+                className="px-2.5 py-1 sm:px-3.5 sm:py-1.5 bg-brand-orange text-black hover:bg-white font-space text-[10px] sm:text-[11px] font-bold uppercase transition-colors duration-150"
               >
                 Register
               </Link>
