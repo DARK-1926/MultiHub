@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { StreakData, Platform, PlatformStreak } from "@/lib/types";
-import { Flame, Layers } from "lucide-react";
+import { Flame, Layers, Clock, AlertTriangle, CheckCircle2 } from "lucide-react";
 
 export interface StreakHeatmapProps {
   streakData: StreakData;
@@ -22,6 +22,28 @@ export const StreakHeatmap: React.FC<StreakHeatmapProps> = ({
     date: string;
     solved: boolean;
   } | null>(null);
+
+  const isPlatformSolvedToday = (platform: Platform): boolean => {
+    const history = streakData.platformHistories?.[platform];
+    if (!history || history.length === 0) return false;
+    return history[history.length - 1]?.solved ?? false;
+  };
+
+  // Calculate exact time remaining until midnight IST (23:59:59 IST)
+  const getIstMidnightCountdown = () => {
+    const now = new Date();
+    // IST = UTC + 5:30 (330 minutes)
+    const istOffsetMinutes = 330;
+    const currentUtcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+    const currentIstMinutes = (currentUtcMinutes + istOffsetMinutes) % 1440;
+    
+    const minutesUntilMidnight = 1440 - currentIstMinutes;
+    const hoursLeft = Math.floor(minutesUntilMidnight / 60);
+    const minsLeft = minutesUntilMidnight % 60;
+    return `${hoursLeft}h ${minsLeft}m`;
+  };
+
+  const countdownText = getIstMidnightCountdown();
 
   const currentHistory =
     activeFilter === "all"
@@ -43,6 +65,10 @@ export const StreakHeatmap: React.FC<StreakHeatmapProps> = ({
     { platform: "codechef", currentStreak: 3, longestStreak: 12, totalActiveDays: 38 },
     { platform: "gfg", currentStreak: 4, longestStreak: 16, totalActiveDays: 45 },
   ];
+
+  const atRiskStreaks = streaksList.filter(
+    (s) => s.currentStreak > 0 && !isPlatformSolvedToday(s.platform)
+  );
 
   return (
     <section
@@ -87,40 +113,109 @@ export const StreakHeatmap: React.FC<StreakHeatmapProps> = ({
           </div>
         </div>
 
+        {/* Live Streak Expiry Alert Banner */}
+        {atRiskStreaks.length > 0 ? (
+          <div className="px-4 py-3 bg-amber-500/10 border-b-2 border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 font-space text-xs">
+            <div className="flex items-center gap-2 text-amber-400 font-bold">
+              <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 animate-bounce" />
+              <span>
+                STREAK EXPIRING SOON:{" "}
+                <span className="text-white underline">
+                  {atRiskStreaks.map((s) => s.platform.toUpperCase()).join(" & ")}
+                </span>{" "}
+                expires in <span className="text-brand-orange font-bold">{countdownText}</span> (at 23:59 IST) if not solved today!
+              </span>
+            </div>
+            <a
+              href="#coach"
+              className="inline-flex items-center gap-1.5 bg-brand-orange text-black font-bold uppercase text-[10px] px-3 py-1 border border-brand-orange hover:bg-white hover:border-white transition-colors flex-shrink-0"
+            >
+              <span>GET 1-SOLVE RESCUE</span>
+            </a>
+          </div>
+        ) : (
+          <div className="px-4 py-2.5 bg-emerald-500/10 border-b-2 border-emerald-500/30 flex items-center justify-between gap-2 font-space text-xs text-emerald-400">
+            <div className="flex items-center gap-2 font-bold">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+              <span>ALL ACTIVE STREAKS PRESERVED FOR TODAY · ZERO RISK OF RESET</span>
+            </div>
+            <span className="text-[10px] text-emerald-400/70 font-mono hidden sm:inline">
+              NEXT RESET: 23:59 IST
+            </span>
+          </div>
+        )}
+
         {/* Individual Platform Streaks Comparison Bar */}
         <div className="px-3 py-3 sm:px-6 sm:py-4 border-b-2 border-borderline bg-surface font-space text-xs grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
-          {streaksList.map((item, idx) => (
-            <div
-              key={`${item.platform}-${idx}`}
-              className={`border-2 p-2.5 sm:p-3 transition-colors ${
-                activeFilter === item.platform
-                  ? "bg-brand-orange/10 border-brand-orange"
-                  : "bg-paper border-borderline"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-bold uppercase text-ink text-[10px] sm:text-xs truncate">
-                  {item.platform === "codechef"
-                    ? (idx === 1 ? "CC (MAIN)" : "CC (COLLEGE)")
-                    : item.platform}
-                </span>
-                <span className="text-[9px] sm:text-[10px] text-brand-orange font-bold uppercase">
-                  STREAK
-                </span>
+          {streaksList.map((item, idx) => {
+            const solvedToday = isPlatformSolvedToday(item.platform);
+            const isAtRisk = item.currentStreak > 0 && !solvedToday;
+
+            return (
+              <div
+                key={`${item.platform}-${idx}`}
+                className={`border-2 p-2.5 sm:p-3 transition-colors flex flex-col justify-between ${
+                  activeFilter === item.platform
+                    ? "bg-brand-orange/10 border-brand-orange"
+                    : isAtRisk
+                    ? "bg-amber-500/[0.04] border-amber-500/40"
+                    : "bg-paper border-borderline"
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold uppercase text-ink text-[10px] sm:text-xs truncate">
+                      {item.platform === "codechef"
+                        ? (idx === 1 ? "CC (MAIN)" : "CC (COLLEGE)")
+                        : item.platform}
+                    </span>
+                    <span className="text-[9px] sm:text-[10px] text-brand-orange font-bold uppercase">
+                      STREAK
+                    </span>
+                  </div>
+                  <div className="mt-1 flex items-baseline gap-1 sm:gap-2">
+                    <span className="text-base sm:text-xl font-bold text-brand-orange">
+                      {item.currentStreak}D
+                    </span>
+                    <span className="text-[9px] sm:text-[10px] text-ink/60 uppercase">
+                      (REC: {item.longestStreak}D)
+                    </span>
+                  </div>
+                  <div className="text-[9px] sm:text-[10px] text-ink/50 uppercase mt-0.5 truncate">
+                    {item.totalActiveDays} ACTIVE DAYS
+                  </div>
+                </div>
+
+                {/* Today's Streak Expiry Status */}
+                <div className="mt-2.5 pt-2 border-t border-borderline/60">
+                  {solvedToday ? (
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-400 bg-emerald-500/15 px-1.5 py-0.5 border border-emerald-500/30">
+                        <CheckCircle2 className="w-2.5 h-2.5" />
+                        <span>SOLVED TODAY</span>
+                      </span>
+                      <span className="text-[9px] text-emerald-400/80 font-bold uppercase">SAFE</span>
+                    </div>
+                  ) : isAtRisk ? (
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1 text-[9px] font-bold text-amber-400 bg-amber-500/15 px-1.5 py-0.5 border border-amber-500/40 animate-pulse">
+                        <Clock className="w-2.5 h-2.5" />
+                        <span>EXPIRES IN {countdownText}</span>
+                      </span>
+                      <span className="text-[9px] text-amber-400 font-bold uppercase">AT RISK</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1 text-[9px] font-bold text-ink/40 bg-white/5 px-1.5 py-0.5 border border-borderline/40">
+                        <span>REST / 0D</span>
+                      </span>
+                      <span className="text-[9px] text-ink/40 uppercase">INACTIVE</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="mt-1 flex items-baseline gap-1 sm:gap-2">
-                <span className="text-base sm:text-xl font-bold text-brand-orange">
-                  {item.currentStreak}D
-                </span>
-                <span className="text-[9px] sm:text-[10px] text-ink/60 uppercase">
-                  (REC: {item.longestStreak}D)
-                </span>
-              </div>
-              <div className="text-[9px] sm:text-[10px] text-ink/50 uppercase mt-0.5 truncate">
-                {item.totalActiveDays} ACTIVE DAYS
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Heatmap Grid */}
