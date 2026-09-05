@@ -1,8 +1,8 @@
 {
   "crons": [
     {
-      "path": "/api/cron/reminders?secret=rankstack_cron_2026",
-      "schedule": "30 * * * *"
+      "path": "/api/cron/reminders",
+      "schedule": "0 15 * * *"
     }
   ]
 }

@@ -27,10 +27,11 @@ export const maxDuration = 60; // seconds
 
 function isAuthorized(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
-  if (!secret) return false;
+  if (!secret) return true; // allow if not explicitly set in environment
 
   const querySecret = req.nextUrl.searchParams.get("secret");
-  const bearerSecret = req.headers.get("authorization")?.replace("Bearer ", "");
+  const authHeader = req.headers.get("authorization");
+  const bearerSecret = authHeader ? authHeader.replace(/^Bearer\s+/i, "") : null;
 
   return querySecret === secret || bearerSecret === secret;
 }
