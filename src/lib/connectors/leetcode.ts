@@ -45,6 +45,9 @@ export async function fetchLeetCodeStatsWithCalendar(
           totalActiveDays
         }
       }
+      recentAcSubmissionList(username: $username, limit: 5) {
+        title
+      }
       userContestRanking(username: $username) {
         rating
         globalRanking
@@ -89,7 +92,20 @@ export async function fetchLeetCodeStatsWithCalendar(
     const contest = data.data?.userContestRanking;
     const acSubmissions = matchedUser.submitStats?.acSubmissionNum || [];
     const allSolvedObj = acSubmissions.find((item: { difficulty: string; count: number }) => item.difficulty === "All");
+    const easyObj = acSubmissions.find((item: { difficulty: string; count: number }) => item.difficulty === "Easy");
+    const medObj = acSubmissions.find((item: { difficulty: string; count: number }) => item.difficulty === "Medium");
+    const hardObj = acSubmissions.find((item: { difficulty: string; count: number }) => item.difficulty === "Hard");
     const problemsSolved = allSolvedObj?.count ?? 0;
+
+    const difficultyBreakdown = {
+      easy: easyObj?.count ?? 0,
+      medium: medObj?.count ?? 0,
+      hard: hardObj?.count ?? 0,
+    };
+
+    const recentSubmissions: string[] = Array.isArray(data.data?.recentAcSubmissionList)
+      ? data.data.recentAcSubmissionList.map((item: { title: string }) => item.title).filter(Boolean)
+      : [];
 
     const rating = contest?.rating ? Math.round(contest.rating) : null;
     const rank = contest?.badge?.name
@@ -102,8 +118,8 @@ export async function fetchLeetCodeStatsWithCalendar(
 
     // Parse real streak and calendar dates
     const calendar = matchedUser.userCalendar;
-    const currentStreak = calendar?.streak ?? 5;
-    const totalActiveDays = calendar?.totalActiveDays ?? 22;
+    const currentStreak = calendar?.streak ?? 0;
+    const totalActiveDays = calendar?.totalActiveDays ?? 0;
 
     if (matchedUser.submissionCalendar) {
       try {
@@ -120,7 +136,7 @@ export async function fetchLeetCodeStatsWithCalendar(
     const streak: PlatformStreak = {
       platform: "leetcode",
       currentStreak,
-      longestStreak: Math.max(currentStreak, 14),
+      longestStreak: Math.max(currentStreak, 0),
       totalActiveDays,
     };
 
@@ -131,9 +147,11 @@ export async function fetchLeetCodeStatsWithCalendar(
         rating,
         maxRating: rating ? Math.round(rating * 1.05) : null,
         rank,
-        problemsSolved: problemsSolved > 0 ? problemsSolved : getFallbackLcStats().problemsSolved,
+        problemsSolved,
         lastSyncedAt: new Date().toISOString(),
         streak,
+        recentSubmissions,
+        difficultyBreakdown,
       },
       activeDates,
     };

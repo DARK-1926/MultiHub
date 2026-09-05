@@ -115,7 +115,12 @@ export default async function DashboardPage() {
       >
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
           <div>
-            <AiCoachCard initialRecommendations={recommendations} />
+            <AiCoachCard
+              initialRecommendations={recommendations}
+              platforms={platforms}
+              streakData={streakData}
+              userName={user.name}
+            />
           </div>
           <div id="settings">
             <SettingsForm />

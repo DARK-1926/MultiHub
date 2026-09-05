@@ -16,6 +16,8 @@ export interface PlatformStats {
   problemsSolved: number;
   lastSyncedAt: string;       // ISO 8601 date string
   streak?: PlatformStreak;    // Individual platform streak
+  recentSubmissions?: string[]; // Latest solved problem titles
+  difficultyBreakdown?: { easy: number; medium: number; hard: number }; // Breakdown of solve counts
 }
 
 export interface StreakData {

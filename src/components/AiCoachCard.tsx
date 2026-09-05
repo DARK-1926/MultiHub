@@ -1,17 +1,163 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { Recommendation } from "@/lib/types";
-import { Sparkles, ExternalLink, RefreshCw, Send, MessageSquare, Target, User, Bot, Zap } from "lucide-react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
+import { Recommendation, PlatformStats, StreakData } from "@/lib/types";
+import { Sparkles, ExternalLink, RefreshCw, Send, MessageSquare, Target, User, Bot, Zap, Flame, ShieldAlert } from "lucide-react";
 
 export interface AiCoachCardProps {
   initialRecommendations: Recommendation[];
+  platforms?: PlatformStats[];
+  streakData?: StreakData;
+  userName?: string;
   className?: string;
 }
 
 interface ChatMessage {
   role: "assistant" | "user";
   content: string;
+}
+
+interface PersonaPrompt {
+  tag: string;
+  label: string;
+  prompt: string;
+  icon?: string;
+}
+
+function getPersonaPrompts(
+  platforms?: PlatformStats[],
+  streakData?: StreakData,
+  userName?: string
+): PersonaPrompt[] {
+  const prompts: PersonaPrompt[] = [];
+
+  const cc = platforms?.find((p) => p.platform === "codechef");
+  const lc = platforms?.find((p) => p.platform === "leetcode");
+  const cf = platforms?.find((p) => p.platform === "codeforces" && p.handle !== "pending_setup");
+  const streak = streakData?.currentStreak ?? 0;
+
+  // Extract recent solved problem titles from LeetCode or Codeforces
+  const recentSolves = [
+    ...(lc?.recentSubmissions || []),
+    ...(cf?.recentSubmissions || []),
+  ];
+  const latestSolve = recentSolves[0];
+  const secondSolve = recentSolves[1];
+
+  // 1. CodeChef Rating Gap & Starters 255 Sprint
+  if (cc && cc.rating) {
+    if (cc.rating < 1600) {
+      const gap = 1600 - cc.rating;
+      prompts.push({
+        tag: `🎯 ${cc.rating} → 3★ (-${gap} pts)`,
+        label: `Bridge ${gap} pts to 3★`,
+        prompt: `I am currently rated ${cc.rating} on CodeChef (@${cc.handle}). How do I bridge the ${gap}-point gap to hit 3★ (1600) in Starters 255? Give me the exact Problem C patterns (Binary Search on Answer, 1D DP, Two Pointers) I need to drill.`,
+      });
+    } else {
+      prompts.push({
+        tag: `⚔️ CC ${cc.rating} → 4★`,
+        label: `Push to 4★ (1800+)`,
+        prompt: `I am rated ${cc.rating} on CodeChef (@${cc.handle}). What Div 2 contest speed and graph/DP techniques should I focus on to push past 1800+ in upcoming Starters?`,
+      });
+    }
+  } else {
+    prompts.push({
+      tag: `⚔️ Starters 255 Drill`,
+      label: `Starters 255 Strategy`,
+      prompt: `Give me a targeted contest speed strategy for CodeChef Starters 255. How should I allocate my 2 hours across Problems A through D?`,
+    });
+  }
+
+  // 2. Hyper-Specific Recent Solved Problem Drill (No generic question)
+  if (latestSolve) {
+    const truncatedTitle = latestSolve.length > 20 ? `${latestSolve.slice(0, 18)}...` : latestSolve;
+    prompts.push({
+      tag: `🔥 "${truncatedTitle}"`,
+      label: `Master "${truncatedTitle}"`,
+      prompt: `I recently solved "${latestSolve}". What are the trickiest edge cases, time-complexity pitfalls, and harder follow-up variations of this problem that contest setters use?`,
+    });
+  }
+
+  // 3. LeetCode Difficulty Breakdown & Ratio Balancing
+  if (lc?.difficultyBreakdown) {
+    const { easy, medium, hard } = lc.difficultyBreakdown;
+    prompts.push({
+      tag: `🧠 ${medium}M / ${hard}H Ratio`,
+      label: `Convert Mediums to Hards`,
+      prompt: `My LeetCode stats are ${easy} Easy, ${medium} Medium, and ${hard} Hard (${lc.problemsSolved} total). Analyze my ratio: am I plateauing on Mediums, and what specific sub-topics should I drill to solve Hards reliably under 25 minutes?`,
+    });
+  } else if (lc?.problemsSolved) {
+    prompts.push({
+      tag: `🧠 ${lc.problemsSolved} LC Solves`,
+      label: `Level up LeetCode Solves`,
+      prompt: `I have solved ${lc.problemsSolved} problems on LeetCode (@${lc.handle}). What algorithmic patterns should I focus on right now to shift toward contest-level speed?`,
+    });
+  }
+
+  // 4. Codeforces or Next Problem Pattern
+  if (cf && cf.rating) {
+    prompts.push({
+      tag: `⚡ CF ${cf.rating} Push`,
+      label: `Push to Specialist`,
+      prompt: `My Codeforces rating is ${cf.rating}. How can I improve my speed and penalty points on Div 3/Div 2 Problems A, B, and C?`,
+    });
+  } else if (secondSolve) {
+    const truncatedSecond = secondSolve.length > 20 ? `${secondSolve.slice(0, 18)}...` : secondSolve;
+    prompts.push({
+      tag: `💡 "${truncatedSecond}"`,
+      label: `Analyze "${truncatedSecond}"`,
+      prompt: `Analyze the algorithmic paradigm behind "${secondSolve}". What adjacent data structures or tricks should I practice next?`,
+    });
+  }
+
+  // 5. Active Streak & Accountability
+  if (streak > 0) {
+    prompts.push({
+      tag: `🔥 ${streak}-Day Streak Audit`,
+      label: `Preserve Streak Today`,
+      prompt: `I'm on a ${streak}-day streak across my platforms. Audit my daily intensity: what is 1 high-impact problem I must solve today to maintain genuine skill growth, not just a vanity streak?`,
+    });
+  } else {
+    prompts.push({
+      tag: `⚡ Day 1 Momentum`,
+      label: `Reignite Streak`,
+      prompt: `My active streak is at 0 days. Give me a concrete, non-trivial problem right now to reignite my daily problem-solving momentum.`,
+    });
+  }
+
+  return prompts;
+}
+
+function buildInitialGreeting(
+  userName?: string,
+  platforms?: PlatformStats[],
+  streakData?: StreakData
+): string {
+  const firstName = userName ? userName.split(" ")[0] : "Competitor";
+  const cc = platforms?.find((p) => p.platform === "codechef");
+  const lc = platforms?.find((p) => p.platform === "leetcode");
+  const latestSolve = lc?.recentSubmissions?.[0] || platforms?.find((p) => p.recentSubmissions?.[0])?.recentSubmissions?.[0];
+  const streak = streakData?.currentStreak ?? 0;
+
+  const telemetryParts: string[] = [];
+  if (cc?.rating) {
+    telemetryParts.push(`**CodeChef:** ${cc.rating} (${cc.rating < 1600 ? `${1600 - cc.rating} pts to 3★` : "3★ Active"})`);
+  }
+  if (lc?.difficultyBreakdown) {
+    telemetryParts.push(`**LeetCode:** ${lc.difficultyBreakdown.medium}M / ${lc.difficultyBreakdown.hard}H`);
+  }
+  if (latestSolve) {
+    telemetryParts.push(`**Latest Solve:** \`${latestSolve}\``);
+  }
+  if (streak > 0) {
+    telemetryParts.push(`**Active Streak:** ${streak} Days 🔥`);
+  }
+
+  const telemetrySnippet = telemetryParts.length > 0
+    ? `\n\n*Live Telemetry Hooked In:*\n- ${telemetryParts.join("\n- ")}`
+    : "";
+
+  return `Welcome ${firstName}. I have full visibility into your live ratings, solve breakdown, and recent submissions.${telemetrySnippet}\n\nHave you solved your daily target problem today, or are you slacking off? Select a custom drill above or ask anything about your trajectory.`;
 }
 
 function renderMarkdown(content: string): React.ReactNode {
@@ -96,9 +242,23 @@ function renderMarkdown(content: string): React.ReactNode {
 
 export const AiCoachCard: React.FC<AiCoachCardProps> = ({
   initialRecommendations,
+  platforms = [],
+  streakData,
+  userName,
   className = "",
 }) => {
   const [activeTab, setActiveTab] = useState<"chat" | "picks">("chat");
+
+  // Dynamic persona prompts calculated from user's live platform telemetry
+  const personaPrompts = useMemo(
+    () => getPersonaPrompts(platforms, streakData, userName),
+    [platforms, streakData, userName]
+  );
+
+  const initialGreeting = useMemo(
+    () => buildInitialGreeting(userName, platforms, streakData),
+    [userName, platforms, streakData]
+  );
 
   // Daily Picks State
   const [recommendations, setRecommendations] = useState<Recommendation[]>(initialRecommendations);
@@ -107,16 +267,25 @@ export const AiCoachCard: React.FC<AiCoachCardProps> = ({
 
   // Chat State
   const [selectedModel, setSelectedModel] = useState<"groq" | "gemini">("groq");
-  const [messages, setMessages] = useState<ChatMessage[]>([
+  const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
       role: "assistant",
-      content:
-        "Welcome to your CP Command Center. Have you solved your daily target problem today, or are you slacking off? Tell me what problem or platform you want to conquer right now.",
+      content: initialGreeting,
     },
   ]);
   const [inputMessage, setInputMessage] = useState("");
   const [isChatLoading, setIsChatLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Sync greeting when live platform stats load
+  useEffect(() => {
+    setMessages((prev) => {
+      if (prev.length === 1 && prev[0].role === "assistant") {
+        return [{ role: "assistant", content: initialGreeting }];
+      }
+      return prev;
+    });
+  }, [initialGreeting]);
 
   useEffect(() => {
     if (activeTab === "chat") {
@@ -169,6 +338,8 @@ export const AiCoachCard: React.FC<AiCoachCardProps> = ({
           message: userMsg,
           model: selectedModel,
           history: messages,
+          platforms,
+          streakData,
         }),
       });
 
@@ -309,37 +480,23 @@ export const AiCoachCard: React.FC<AiCoachCardProps> = ({
       {/* Mode 1: Interactive Coach Chat */}
       {activeTab === "chat" && (
         <div className="flex flex-col flex-1 min-h-[360px] sm:min-h-[380px] bg-paper">
-          {/* Quick Prompt Chips */}
+          {/* Dynamic Persona Prompt Chips */}
           <div className="p-2 sm:p-3 border-b-2 border-borderline bg-surface/50 flex items-center gap-1.5 sm:gap-2 overflow-x-auto text-[10px] sm:text-[11px] font-space [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            <span className="text-ink/40 font-bold uppercase whitespace-nowrap">PROMPTS:</span>
-            <button
-              type="button"
-              onClick={() => handleSendMessage("How do I improve my rating on CodeChef and reach 3★?")}
-              className="border border-borderline bg-paper px-2 sm:px-2.5 py-1 text-ink/80 hover:text-brand-orange hover:border-brand-orange whitespace-nowrap transition-colors"
-            >
-              🎯 Rating Strategy
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSendMessage("Check my daily progress and streak. Am I slacking?")}
-              className="border border-borderline bg-paper px-2 sm:px-2.5 py-1 text-ink/80 hover:text-brand-orange hover:border-brand-orange whitespace-nowrap transition-colors"
-            >
-              ⚡ Progress Check
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSendMessage("How do I transition from LeetCode Mediums to solve Hards reliably?")}
-              className="border border-borderline bg-paper px-2 sm:px-2.5 py-1 text-ink/80 hover:text-brand-orange hover:border-brand-orange whitespace-nowrap transition-colors"
-            >
-              🧠 Medium to Hard
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSendMessage("Give me a targeted contest drill plan for upcoming rounds.")}
-              className="border border-borderline bg-paper px-2 sm:px-2.5 py-1 text-ink/80 hover:text-brand-orange hover:border-brand-orange whitespace-nowrap transition-colors"
-            >
-              ⚔️ Contest Drill
-            </button>
+            <span className="text-ink/50 font-bold uppercase whitespace-nowrap text-[10px] flex items-center gap-1.5 mr-1">
+              <Sparkles className="w-3 h-3 text-brand-orange" />
+              <span>CUSTOM DRILLS:</span>
+            </span>
+            {personaPrompts.map((p, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => handleSendMessage(p.prompt)}
+                title={p.prompt}
+                className="group border border-borderline bg-paper px-2 sm:px-2.5 py-1 text-ink/80 hover:text-black hover:bg-brand-orange hover:border-brand-orange whitespace-nowrap transition-all flex items-center gap-1.5 flex-shrink-0 cursor-pointer"
+              >
+                <span className="font-bold text-brand-orange group-hover:text-black transition-colors">{p.tag}</span>
+              </button>
+            ))}
           </div>
 
           {/* Messages Feed */}

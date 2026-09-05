@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
+import { PlatformStats, StreakData } from "@/lib/types";
+import { fetchAllPlatformStats, fetchRealStreakData } from "@/lib/connectors";
 
 export const dynamic = "force-dynamic";
 
@@ -16,12 +18,28 @@ export async function POST(req: NextRequest) {
 
   try {
     const user = await getCurrentUser().catch(() => null);
-    const userName = user?.name || "Coder";
+    const userName = user?.name || "Competitor";
 
     const body = await req.json();
     const userMessage = body.message || "What should I focus on right now?";
     const conversationHistory = body.history || [];
     const requestedModel = (body.model || "groq").toLowerCase(); // "groq" | "gemini"
+
+    // ── Ingest live telemetry from client body or fetch if absent ──────────
+    let platforms: PlatformStats[] = Array.isArray(body.platforms) ? body.platforms : [];
+    let streakData: StreakData | undefined = body.streakData;
+
+    if (platforms.length === 0 && user) {
+      const customHandles = {
+        leetcode: user.lc_handle || "",
+        codechef: user.cc_handles?.length ? user.cc_handles : [],
+        gfg: user.gfg_handle || "",
+        codeforces: user.cf_handle || "",
+        github: user.github_handle || "",
+      };
+      platforms = await fetchAllPlatformStats(customHandles).catch(() => []);
+      streakData = await fetchRealStreakData(customHandles).catch(() => undefined);
+    }
 
     const now = new Date();
     // Exact countdown to CodeChef Starters 255 (Wed Sep 9, 2026, 8:00 PM IST)
@@ -31,32 +49,89 @@ export async function POST(req: NextRequest) {
     const hoursUntilStarters = Math.max(0, Math.floor((diffMs / (1000 * 60 * 60)) % 24));
     const countdownStr = `${daysUntilStarters} days and ${hoursUntilStarters} hours`;
 
+    // ── Extract Platform Specifics ─────────────────────────────────────────
+    const ccAccounts = platforms.filter((p) => p.platform === "codechef");
+    let ccDossier = "Not connected";
+    if (ccAccounts.length > 0) {
+      ccDossier = ccAccounts
+        .map((cc, i) => {
+          const ratingStr = cc.rating ? `${cc.rating} (${cc.rank || "Div 3"})` : "Unrated";
+          const maxStr = cc.maxRating ? ` [Peak: ${cc.maxRating}]` : "";
+          const targetStr =
+            cc.rating && cc.rating < 1600
+              ? ` -> TARGET: ${1600 - cc.rating} pts needed to hit 3★ (1600)`
+              : cc.rating
+              ? ` -> 3★+ Active`
+              : "";
+          return `Account ${i + 1} (@${cc.handle}): Rating ${ratingStr}${maxStr}, ${cc.problemsSolved} Solved${targetStr}`;
+        })
+        .join("\n  * ");
+    }
+
+    const lc = platforms.find((p) => p.platform === "leetcode");
+    let lcDossier = "Not connected";
+    if (lc) {
+      const b = lc.difficultyBreakdown;
+      const bStr = b ? ` (${b.easy} Easy, ${b.medium} Medium, ${b.hard} Hard)` : "";
+      const recent = lc.recentSubmissions?.length
+        ? `\n  * Latest Solved Problems: ${lc.recentSubmissions.map((s) => `"${s}"`).join(", ")}`
+        : "";
+      const ratingStr = lc.rating ? `Contest Rating: ${lc.rating} (${lc.rank || "Active"})` : `Rank: ${lc.rank || "Active"}`;
+      lcDossier = `Handle @${lc.handle}: ${lc.problemsSolved} Solved${bStr} | ${ratingStr}${recent}`;
+    }
+
+    const cf = platforms.find((p) => p.platform === "codeforces");
+    let cfDossier = "Not connected";
+    if (cf && cf.handle !== "pending_setup") {
+      const recent = cf.recentSubmissions?.length
+        ? `\n  * Latest Solved: ${cf.recentSubmissions.map((s) => `"${s}"`).join(", ")}`
+        : "";
+      cfDossier = `Handle @${cf.handle}: Rating ${cf.rating || "Unrated"} (${cf.rank || "Active"}) | ${cf.problemsSolved} Solved${recent}`;
+    }
+
+    const gfg = platforms.find((p) => p.platform === "gfg");
+    const gfgDossier = gfg ? `Handle @${gfg.handle}: ${gfg.problemsSolved} Solved | Score: ${gfg.rank || "Active"}` : "Not connected";
+
+    const gh = platforms.find((p) => p.platform === "github");
+    const ghDossier = gh && gh.handle !== "Not Connected"
+      ? `Handle @${gh.handle}: ${gh.problemsSolved} Commits | ${gh.rank || "Active"}`
+      : "Not connected";
+
+    const currentStreak = streakData?.currentStreak ?? 0;
+    const longestStreak = streakData?.longestStreak ?? 0;
+    const totalSolves = platforms.reduce((acc, p) => acc + (p.problemsSolved || 0), 0);
+
     const systemPrompt = `
-You are RankStack AI Coach — a strict, encouraging, high-velocity Competitive Programming guide and mentor for ${userName}.
+You are RankStack AI Coach — an elite, hyper-personalized Competitive Programming mentor for ${userName}.
+You have direct real-time telemetry access to ${userName}'s exact ratings, solve history, streak metrics, and recent problems solved.
 
-CURRENT DATE & CONTEST TIMELINE (ACCURACY IS MANDATORY):
-- Current Date: ${now.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "short", day: "numeric" })}.
-- Upcoming Contest: CodeChef Starters 255 is on Wednesday, Sep 9, 2026 at 08:00 PM IST.
-- TIME REMAINING UNTIL STARTERS 255: EXACTLY ${countdownStr} (Starts in ~${daysUntilStarters}D ${hoursUntilStarters}H).
-  CRITICAL RULE: NEVER hallucinate 23 days! Starters 255 is strictly ${daysUntilStarters} days away (starts in ${daysUntilStarters}D ${hoursUntilStarters}H).
-- LeetCode Weekly Contest 440: Sunday, Sep 6, 2026.
+${userName.toUpperCase()}'S LIVE TELEMETRY DOSSIER:
+- Total Cumulative Solves Across Platforms: ${totalSolves}
+- Current Active Streak: ${currentStreak} Days (All-Time Record: ${longestStreak} Days)
+- Upcoming Major Contest: CodeChef Starters 255 in EXACTLY ${countdownStr} (Starts in ${daysUntilStarters}D ${hoursUntilStarters}H)
 
-${userName.toUpperCase()}'S LIVE TELEMETRY:
-- CodeChef: Tracked handles: ${user?.cc_handles?.length ? user.cc_handles.join(", ") : "Main & College accounts"}.
-  Target: Reach 3★ (1600+ rating) in upcoming Starters 255 (in ${daysUntilStarters} days)!
-- LeetCode Handle: ${user?.lc_handle || "Connected"}
-  Goal: Shift ratio from Medium to Hard and reduce solve time.
-- GeeksforGeeks Handle: ${user?.gfg_handle || "Connected"}
-- GitHub Handle: ${user?.github_handle || "Connected"}
+CONNECTED PLATFORMS & RECENT SOLVES:
+- CodeChef:
+  * ${ccDossier}
+- LeetCode:
+  * ${lcDossier}
+- Codeforces:
+  * ${cfDossier}
+- GeeksforGeeks:
+  * ${gfgDossier}
+- GitHub:
+  * ${ghDossier}
 
-YOUR MISSION AS COACH:
-1. KEEP THE USER ON CHECK: Hold ${userName} accountable. Ask if they solved daily problems or skipped. No excuses.
-2. GUIDE IN THE RIGHT DIRECTION: For CodeChef rating jumps, problems A & B must be solved fast. Problem C (usually binary search on answer, greedy, or 1D DP) decides the rating jump.
-3. FORMATTING IS CRITICAL:
-   - Use Markdown cleanly with bold keywords (**term**), bullet points (* or -), and numbered lists (1., 2.).
-   - Never output unescaped raw control characters.
-   - Separate points with clean linebreaks so the response renders beautifully.
-4. Keep the tone sharp, competitive, and respectful. When referencing Starters 255, remember it is in ${daysUntilStarters} days!
+COACHING RULES & PERSONA INSTRUCTIONS:
+1. NEVER GIVE GENERIC ADVICE: Reference ${userName}'s exact statistics. If they ask how to improve, cite their actual CodeChef rating, their LeetCode difficulty ratio (e.g. Mediums vs Hards), or their actual recent problem solves.
+2. TAILORED STRATEGY:
+   - For CodeChef: Emphasize Div 3 Problem C requirements (Binary Search on Answer, 1D DP, Two Pointers, Greedy with Sorting) to bridge into 3★ (1600).
+   - For LeetCode: Analyze their solve distribution and suggest advanced sub-patterns to convert Medium mastery into Hard solves.
+3. REFERENCE RECENT SOLVES: If recent solved problems are listed in their dossier, draw direct connections to them.
+4. CONTEST SPRINT: Remember Starters 255 is strictly in ${daysUntilStarters} days (${countdownStr}). Advise on contest speed drills.
+5. CLEAN MARKDOWN FORMATTING:
+   - Use bold headers, bullet lists, and code/problem backticks (\`...\`).
+   - Clean spacing with zero unescaped artifacts.
 `;
 
     // 1. If Groq requested and key available

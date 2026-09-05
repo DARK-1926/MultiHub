@@ -46,11 +46,12 @@ export async function fetchCodeforcesStats(
 
     const user = userData.result[0];
 
-    // 2. Fetch submission history for problem solve count
+    // 2. Fetch submission history for problem solve count and recent solves
     let problemsSolved = 0;
+    const recentSubmissions: string[] = [];
     try {
       const statusRes = await fetch(
-        `https://codeforces.com/api/user.status?handle=${encodeURIComponent(handle)}&from=1&count=1000`,
+        `https://codeforces.com/api/user.status?handle=${encodeURIComponent(handle)}&from=1&count=200`,
         {
           signal: controller.signal,
           headers: {
@@ -67,6 +68,9 @@ export async function fetchCodeforcesStats(
           for (const sub of statusData.result) {
             if (sub.verdict === "OK" && sub.problem) {
               uniqueSolved.add(`${sub.problem.contestId}-${sub.problem.index}`);
+              if (sub.problem.name && !recentSubmissions.includes(sub.problem.name) && recentSubmissions.length < 5) {
+                recentSubmissions.push(sub.problem.name);
+              }
             }
           }
           problemsSolved = uniqueSolved.size;
@@ -84,6 +88,7 @@ export async function fetchCodeforcesStats(
       rank: user.rank ? user.rank.toUpperCase() : null,
       problemsSolved,
       lastSyncedAt: new Date().toISOString(),
+      recentSubmissions,
     };
   } catch (error) {
     console.warn(`[Codeforces Connector] Failed for handle "${handle}":`, error instanceof Error ? error.message : error);
