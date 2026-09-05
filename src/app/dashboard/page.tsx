@@ -38,11 +38,11 @@ export default async function DashboardPage() {
 
   // ── Build handles from this user's DB record ──────────────────────────────
   const customHandles = {
-    leetcode: user.lc_handle ?? undefined,
-    codechef: user.cc_handles?.length ? user.cc_handles : undefined,
-    gfg: user.gfg_handle ?? undefined,
-    codeforces: user.cf_handle ?? undefined,
-    github: user.github_handle ?? undefined,
+    leetcode: user.lc_handle || "",
+    codechef: user.cc_handles?.length ? user.cc_handles : [],
+    gfg: user.gfg_handle || "",
+    codeforces: user.cf_handle || "",
+    github: user.github_handle || "",
   };
 
   // ── Fetch live data for this user ─────────────────────────────────────────

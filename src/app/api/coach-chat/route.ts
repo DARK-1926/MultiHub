@@ -172,14 +172,14 @@ YOUR MISSION AS COACH:
 
     return NextResponse.json({
       reply:
-        "Mohit, 1461 to 1600 requires strict problem-solving discipline. Focus on solving at least 1 CodeChef 1500-rated problem and 1 LeetCode Medium without looking at editorial today. Keep pushing!",
+        `${userName}, hitting the next rating tier requires strict problem-solving discipline. Focus on solving at least 1 contest-level problem and 1 LeetCode Medium without looking at editorial today. Keep pushing!`,
       modelUsed: "fallback",
     });
   } catch (error) {
     console.error("[Coach Chat API] Error:", error);
     return NextResponse.json({
       reply:
-        "Mohit, keep your streak alive. Focus on binary search on answer and 0/1 knapsack today.",
+        "Maintain focus and keep your streak alive. Focus on binary search on answer and dynamic programming patterns today.",
       modelUsed: "fallback",
     });
   }

@@ -7,19 +7,35 @@ export interface GitHubConnectorResult {
 }
 
 export async function fetchGitHubStats(
-  handle: string = "DARK-1926",
+  handle: string = "",
   options: ConnectorOptions = {}
 ): Promise<GitHubConnectorResult> {
+  const activeDates = new Set<string>();
+
+  if (!handle || !handle.trim() || handle === "pending_setup") {
+    return {
+      stats: {
+        platform: "github",
+        handle: handle || "Not Connected",
+        rating: null,
+        maxRating: null,
+        rank: "NOT CONNECTED",
+        problemsSolved: 0,
+        lastSyncedAt: new Date().toISOString(),
+      },
+      activeDates,
+    };
+  }
+
   const timeoutMs = options.timeoutMs || 6000;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-  const activeDates = new Set<string>();
-  let publicRepos = 35;
-  let totalCommits = 240;
-  let currentStreak = 4;
-  let longestStreak = 18;
-  let totalActiveDays = 134;
+  let publicRepos = 0;
+  let totalCommits = 0;
+  let currentStreak = 0;
+  let longestStreak = 0;
+  let totalActiveDays = 0;
 
   try {
     // 1. Fetch user profile from GitHub API
@@ -84,7 +100,7 @@ export async function fetchGitHubStats(
         if (commitSum > 0) totalCommits = commitSum;
         if (activeCount > 0) totalActiveDays = activeCount;
         if (maxStreakCounter > 0) longestStreak = maxStreakCounter;
-        currentStreak = curStreakCounter > 0 ? curStreakCounter : 3;
+        currentStreak = curStreakCounter;
       }
     } catch {
       // Non-fatal
@@ -102,7 +118,7 @@ export async function fetchGitHubStats(
       handle,
       rating: null,
       maxRating: null,
-      rank: `${publicRepos} REPOSITORIES`,
+      rank: publicRepos > 0 ? `${publicRepos} REPOSITORIES` : "ACTIVE",
       problemsSolved: totalCommits, // represents commit contributions
       lastSyncedAt: new Date().toISOString(),
       streak,
@@ -117,14 +133,14 @@ export async function fetchGitHubStats(
         handle,
         rating: null,
         maxRating: null,
-        rank: "35 REPOSITORIES",
-        problemsSolved: 240,
+        rank: "OFFLINE",
+        problemsSolved: 0,
         lastSyncedAt: new Date().toISOString(),
         streak: {
           platform: "github",
-          currentStreak: 4,
-          longestStreak: 18,
-          totalActiveDays: 134,
+          currentStreak: 0,
+          longestStreak: 0,
+          totalActiveDays: 0,
         },
       },
       activeDates,

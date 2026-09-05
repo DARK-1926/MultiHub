@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Recommendation } from "@/lib/types";
+import { getCurrentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -10,14 +11,17 @@ export async function POST() {
     return NextResponse.json({ error: "No AI key configured" }, { status: 500 });
   }
 
-  const prompt = `
-You are a competitive programming coach for Mohit Kumar.
-His profile:
-- CodeChef Rating: 1461 (2★ Div 3, 179 problems solved across 2 accounts: each_twirl_69 & iiitdw24bcs076)
-- LeetCode Solved: 111 (52 Easy, 52 Medium, 7 Hard)
-- GeeksforGeeks: 116 solved (Coding Score: 354)
+  const user = await getCurrentUser().catch(() => null);
+  const userName = user?.name || "Student";
 
-Recommend 4 specific, real CP problems to help him transition from 1461 to 1600+ on CodeChef and master Medium/Hard LeetCode/GfG.
+  const prompt = `
+You are a competitive programming coach for ${userName}.
+Connected profile context:
+- LeetCode: ${user?.lc_handle || "Active"}
+- CodeChef: ${user?.cc_handles?.join(", ") || "Active"}
+- GeeksforGeeks: ${user?.gfg_handle || "Active"}
+
+Recommend 4 specific, real CP problems to help level up to 1600+ on CodeChef and master Medium/Hard LeetCode/GfG.
 Focus on:
 1. Dynamic Programming / 0-1 Knapsack
 2. Tree & Graph Traversals (BFS/DFS)
@@ -32,7 +36,7 @@ Return strictly a JSON array of 4 objects with no markdown fences, matching:
     "platform": "leetcode" | "codechef" | "gfg",
     "difficulty": "Medium" | "1400-1600" | "Hard",
     "url": "https://...",
-    "reason": "One concise line why this helps Mohit level up."
+    "reason": "One concise line why this helps level up."
   }
 ]
 `;
@@ -64,7 +68,7 @@ Return strictly a JSON array of 4 objects with no markdown fences, matching:
     return NextResponse.json({ recommendations, source: "gemini-2.5-flash" });
   } catch (error) {
     console.error("[AI Recommendations] Error:", error);
-    // Return curated fallback tailored to Mohit's profile
+    // Return curated fallback tailored to user profile
     const fallback: Recommendation[] = [
       {
         id: "rec-1",
@@ -72,7 +76,7 @@ Return strictly a JSON array of 4 objects with no markdown fences, matching:
         platform: "leetcode",
         difficulty: "Medium",
         url: "https://leetcode.com/problems/partition-equal-subset-sum/",
-        reason: "Core 0/1 knapsack DP pattern to solidify your 52 Medium solve foundation.",
+        reason: "Core 0/1 knapsack DP pattern to solidify your Medium solve foundation.",
       },
       {
         id: "rec-2",
@@ -80,7 +84,7 @@ Return strictly a JSON array of 4 objects with no markdown fences, matching:
         platform: "codechef",
         difficulty: "1400-1550",
         url: "https://www.codechef.com/problems/SUBINC",
-        reason: "Linear DP on subarrays to push your 1461 rating towards 3-star territory.",
+        reason: "Linear DP on subarrays to push rating towards 3-star territory.",
       },
       {
         id: "rec-3",

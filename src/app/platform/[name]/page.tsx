@@ -8,7 +8,7 @@ import {
   fetchGfgStats,
   fetchGitHubStats,
 } from "@/lib/connectors";
-import { DEFAULT_HANDLES } from "@/lib/config";
+import { getCurrentUser } from "@/lib/auth";
 import { FloatingNav } from "@/components/FloatingNav";
 import { Footer } from "@/components/Footer";
 import { PlatformStats } from "@/lib/types";
@@ -23,28 +23,79 @@ export interface PlatformPageProps {
 
 export default async function PlatformDetailPage({ params }: PlatformPageProps) {
   const platformName = params.name.toLowerCase();
+  const user = await getCurrentUser();
+
+  const handles = {
+    codeforces: user?.cf_handle || "",
+    leetcode: user?.lc_handle || "",
+    codechef: user?.cc_handles?.length ? user.cc_handles : [],
+    gfg: user?.gfg_handle || "",
+    github: user?.github_handle || "",
+  };
 
   let platform: PlatformStats;
+  let ccAccounts: PlatformStats[] = [];
+
   if (platformName === "codeforces") {
-    platform = await fetchCodeforcesStats(DEFAULT_HANDLES.codeforces);
+    platform = handles.codeforces
+      ? await fetchCodeforcesStats(handles.codeforces)
+      : {
+          platform: "codeforces",
+          handle: "pending_setup",
+          rating: null,
+          maxRating: null,
+          rank: "NOT CONNECTED",
+          problemsSolved: 0,
+          lastSyncedAt: new Date().toISOString(),
+        };
   } else if (platformName === "leetcode") {
-    platform = await fetchLeetCodeStats(DEFAULT_HANDLES.leetcode);
+    platform = handles.leetcode
+      ? await fetchLeetCodeStats(handles.leetcode)
+      : {
+          platform: "leetcode",
+          handle: "Not Connected",
+          rating: null,
+          maxRating: null,
+          rank: "NOT CONNECTED",
+          problemsSolved: 0,
+          lastSyncedAt: new Date().toISOString(),
+        };
   } else if (platformName === "codechef") {
-    const ccAccounts = await fetchCodeChefStats(DEFAULT_HANDLES.codechef);
+    ccAccounts = handles.codechef.length
+      ? await fetchCodeChefStats(handles.codechef)
+      : [];
     platform = ccAccounts[0] || {
       platform: "codechef",
-      handle: "each_twirl_69",
-      rating: 1461,
-      maxRating: 1461,
-      rank: "2★ Div 3",
-      problemsSolved: 91,
+      handle: "Not Connected",
+      rating: null,
+      maxRating: null,
+      rank: "NOT CONNECTED",
+      problemsSolved: 0,
       lastSyncedAt: new Date().toISOString(),
     };
   } else if (platformName === "gfg") {
-    platform = await fetchGfgStats(DEFAULT_HANDLES.gfg);
+    platform = handles.gfg
+      ? await fetchGfgStats(handles.gfg)
+      : {
+          platform: "gfg",
+          handle: "Not Connected",
+          rating: null,
+          maxRating: null,
+          rank: "NOT CONNECTED",
+          problemsSolved: 0,
+          lastSyncedAt: new Date().toISOString(),
+        };
   } else if (platformName === "github") {
-    const ghRes = await fetchGitHubStats(DEFAULT_HANDLES.github);
-    platform = ghRes.stats;
+    const ghRes = handles.github ? await fetchGitHubStats(handles.github) : null;
+    platform = ghRes?.stats || {
+      platform: "github",
+      handle: "Not Connected",
+      rating: null,
+      maxRating: null,
+      rank: "NOT CONNECTED",
+      problemsSolved: 0,
+      lastSyncedAt: new Date().toISOString(),
+    };
   } else {
     platform = {
       platform: "codeforces",
@@ -58,12 +109,12 @@ export default async function PlatformDetailPage({ params }: PlatformPageProps) 
   }
 
   const isCodeforcesPending = platformName === "codeforces" && platform.handle === "pending_setup";
-  const isCodeChefMulti = platformName === "codechef" && Array.isArray(DEFAULT_HANDLES.codechef);
+  const isCodeChefMulti = platformName === "codechef" && ccAccounts.length > 1;
 
   const platformUrls: Record<string, string> = {
-    codeforces: `https://codeforces.com/`,
+    codeforces: `https://codeforces.com/profile/${platform.handle}`,
     leetcode: `https://leetcode.com/u/${platform.handle}`,
-    codechef: `https://www.codechef.com/users/each_twirl_69`,
+    codechef: `https://www.codechef.com/users/${platform.handle}`,
     gfg: `https://www.geeksforgeeks.org/user/${platform.handle}/`,
     github: `https://github.com/${platform.handle}`,
   };
@@ -142,24 +193,22 @@ export default async function PlatformDetailPage({ params }: PlatformPageProps) 
                 <span>LINKED ACCOUNTS (BOTH TRACKED IN DEDICATED PANELS)</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2 text-ink">
-                <a
-                  href="https://www.codechef.com/users/each_twirl_69"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="border border-borderline p-3 bg-surface hover:border-brand-orange transition-colors block"
-                >
-                  <div className="font-bold text-brand-orange">@each_twirl_69 (Main Account)</div>
-                  <div className="text-[11px] text-ink/70 mt-1">Rating: 1461 (2★ Div 3) · 91 Solved</div>
-                </a>
-                <a
-                  href="https://www.codechef.com/users/iiitdw24bcs076"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="border border-borderline p-3 bg-surface hover:border-brand-orange transition-colors block"
-                >
-                  <div className="font-bold text-ink">@iiitdw24bcs076 (College Account)</div>
-                  <div className="text-[11px] text-ink/70 mt-1">IIIT Dharwad Practice · 88 Solved</div>
-                </a>
+                {ccAccounts.map((acc, idx) => (
+                  <a
+                    key={acc.handle}
+                    href={`https://www.codechef.com/users/${acc.handle}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="border border-borderline p-3 bg-surface hover:border-brand-orange transition-colors block"
+                  >
+                    <div className="font-bold text-brand-orange">
+                      @{acc.handle} {idx === 0 ? "(Account 1)" : `(Account ${idx + 1})`}
+                    </div>
+                    <div className="text-[11px] text-ink/70 mt-1">
+                      Rating: {acc.rating || "Unrated"} {acc.rank ? `(${acc.rank})` : ""} · {acc.problemsSolved} Solved
+                    </div>
+                  </a>
+                ))}
               </div>
             </div>
           )}

@@ -15,16 +15,11 @@ export const PlatformRow: React.FC<PlatformRowProps> = ({ stats, index }) => {
   let accountLabel = `@${stats.handle}`;
 
   if (stats.platform === "codechef") {
-    if (stats.handle === "each_twirl_69") {
-      displayName = "CODECHEF (MAIN)";
-      accountLabel = "@each_twirl_69 · Rated 2★";
-    } else if (stats.handle === "iiitdw24bcs076") {
-      displayName = "CODECHEF (COLLEGE)";
-      accountLabel = "@iiitdw24bcs076 · IIIT Dharwad";
-    }
+    displayName = "CODECHEF";
+    accountLabel = `@${stats.handle}${stats.rank ? ` · ${stats.rank}` : ""}`;
   } else if (stats.platform === "leetcode") {
     displayName = "LEETCODE";
-    accountLabel = `@${stats.handle}`;
+    accountLabel = `@${stats.handle}${stats.rank ? ` · ${stats.rank}` : ""}`;
   } else if (stats.platform === "gfg") {
     displayName = "GEEKSFORGEEKS";
     accountLabel = `@${stats.handle}`;
@@ -33,7 +28,7 @@ export const PlatformRow: React.FC<PlatformRowProps> = ({ stats, index }) => {
     accountLabel = `@${stats.handle}`;
   } else if (stats.platform === "codeforces") {
     displayName = "CODEFORCES";
-    accountLabel = "Pending Setup";
+    accountLabel = stats.handle === "pending_setup" ? "Pending Setup" : `@${stats.handle}`;
   }
 
   let leadingMetric = "UNRATED";

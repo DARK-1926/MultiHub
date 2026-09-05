@@ -111,7 +111,7 @@ export const AiCoachCard: React.FC<AiCoachCardProps> = ({
     {
       role: "assistant",
       content:
-        "Mohit, your CodeChef rating sits at 1461 (2★ Div 3). You need 139 points to break into 3★ territory. Starters 255 is coming up on September 9th. Have you solved your Medium/Hard target today, or are you slacking off?",
+        "Welcome to your CP Command Center. Have you solved your daily target problem today, or are you slacking off? Tell me what problem or platform you want to conquer right now.",
     },
   ]);
   const [inputMessage, setInputMessage] = useState("");
@@ -126,7 +126,7 @@ export const AiCoachCard: React.FC<AiCoachCardProps> = ({
 
   const handleRefreshPicks = async () => {
     setIsRefreshing(true);
-    setStatusNotice("AI ANALYZING 1461 RATING & RECENT SOLVES...");
+    setStatusNotice("AI ANALYZING CURRENT RATING & RECENT SOLVES...");
     try {
       const res = await fetch("/api/recommendations", { method: "POST" });
       if (res.ok) {
@@ -138,23 +138,27 @@ export const AiCoachCard: React.FC<AiCoachCardProps> = ({
           setStatusNotice("CURATED PICKS SYNCED");
         }
       } else {
-        setStatusNotice("USING CACHED CURATED TARGETS");
+        setStatusNotice("USING CURATED PICKS");
       }
     } catch {
-      setStatusNotice("TARGETS REFRESHED");
+      setStatusNotice("USING CURATED PICKS");
     } finally {
       setIsRefreshing(false);
-      setTimeout(() => setStatusNotice(null), 4000);
     }
   };
 
-  const handleSendMessage = async (textToSend?: string) => {
-    const text = textToSend || inputMessage;
-    if (!text.trim() || isChatLoading) return;
+  const handleSendMessage = async (textOrEvent?: string | React.FormEvent) => {
+    if (typeof textOrEvent === "object" && textOrEvent && "preventDefault" in textOrEvent) {
+      textOrEvent.preventDefault();
+    }
+    const textToSend = typeof textOrEvent === "string" ? textOrEvent : inputMessage;
+    if (!textToSend.trim() || isChatLoading) return;
 
-    const userMsg: ChatMessage = { role: "user", content: text.trim() };
-    setMessages((prev) => [...prev, userMsg]);
-    setInputMessage("");
+    const userMsg = textToSend.trim();
+    if (typeof textOrEvent !== "string") {
+      setInputMessage("");
+    }
+    setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
     setIsChatLoading(true);
 
     try {
@@ -162,9 +166,9 @@ export const AiCoachCard: React.FC<AiCoachCardProps> = ({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: text.trim(),
-          history: messages.slice(-6), // keep last 6 turns
+          message: userMsg,
           model: selectedModel,
+          history: messages,
         }),
       });
 
@@ -172,7 +176,7 @@ export const AiCoachCard: React.FC<AiCoachCardProps> = ({
         const data = await res.json();
         setMessages((prev) => [
           ...prev,
-          { role: "assistant", content: data.reply || "Keep grinding, Mohit." },
+          { role: "assistant", content: data.reply || "Keep grinding. Stay disciplined and hit your targets." },
         ]);
       } else {
         setMessages((prev) => [
@@ -180,7 +184,7 @@ export const AiCoachCard: React.FC<AiCoachCardProps> = ({
           {
             role: "assistant",
             content:
-              "Mohit, maintain focus. Solve 1 CodeChef Div 3 Problem C and 1 LeetCode Medium before tonight. That's how you hit 1600.",
+              "Maintain focus. Solve 1 Contest-level problem and 1 Medium algorithm before tonight. That's how you level up.",
           },
         ]);
       }
@@ -310,10 +314,10 @@ export const AiCoachCard: React.FC<AiCoachCardProps> = ({
             <span className="text-ink/40 font-bold uppercase whitespace-nowrap">PROMPTS:</span>
             <button
               type="button"
-              onClick={() => handleSendMessage("How do I jump from 1461 to 1600 on CodeChef?")}
+              onClick={() => handleSendMessage("How do I improve my rating on CodeChef and reach 3★?")}
               className="border border-borderline bg-paper px-2.5 py-1 text-ink/80 hover:text-brand-orange hover:border-brand-orange whitespace-nowrap transition-colors"
             >
-              🎯 Jump to 3★ (1600+)
+              🎯 Rating Improvement Strategy
             </button>
             <button
               type="button"
@@ -324,17 +328,17 @@ export const AiCoachCard: React.FC<AiCoachCardProps> = ({
             </button>
             <button
               type="button"
-              onClick={() => handleSendMessage("How do I transition from 52 LeetCode Mediums to solve Hards reliably?")}
+              onClick={() => handleSendMessage("How do I transition from LeetCode Mediums to solve Hards reliably?")}
               className="border border-borderline bg-paper px-2.5 py-1 text-ink/80 hover:text-brand-orange hover:border-brand-orange whitespace-nowrap transition-colors"
             >
               🧠 Medium to Hard Strategy
             </button>
             <button
               type="button"
-              onClick={() => handleSendMessage("Give me a contest drill plan for Starters 255 on September 9th.")}
+              onClick={() => handleSendMessage("Give me a targeted contest drill plan for upcoming rounds.")}
               className="border border-borderline bg-paper px-2.5 py-1 text-ink/80 hover:text-brand-orange hover:border-brand-orange whitespace-nowrap transition-colors"
             >
-              🏆 Starters 255 Drill
+              ⚔️ Contest Drill Plan
             </button>
           </div>
 

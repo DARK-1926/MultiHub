@@ -22,115 +22,103 @@ export async function fetchAllPlatformStats(
     ...customHandles,
   };
 
-  const results = await Promise.allSettled([
-    fetchCodeforcesStats(handles.codeforces, options),
-    fetchLeetCodeStatsWithCalendar(handles.leetcode, options),
-    fetchCodeChefStats(handles.codechef, options), // returns PlatformStats[] for each account!
-    fetchGfgStats(handles.gfg, options),
-    fetchGitHubStats(handles.github, options),
-  ]);
+  const platforms: PlatformStats[] = [];
 
-  const [cfRes, lcRes, ccRes, gfgRes, ghRes] = results;
-
-  const cfStats: PlatformStats =
-    cfRes.status === "fulfilled"
-      ? cfRes.value
-      : {
-          platform: "codeforces",
-          handle: "pending_setup",
-          rating: null,
-          maxRating: null,
-          rank: "PENDING SETUP",
-          problemsSolved: 0,
-          lastSyncedAt: new Date().toISOString(),
-        };
-
-  const lcStats: PlatformStats =
-    lcRes.status === "fulfilled"
-      ? lcRes.value.stats
-      : {
+  // 1. LeetCode (if configured)
+  if (handles.leetcode && handles.leetcode.trim()) {
+    try {
+      const lcRes = await fetchLeetCodeStatsWithCalendar(handles.leetcode, options);
+      platforms.push(lcRes.stats);
+    } catch {
+      platforms.push({
+        platform: "leetcode",
+        handle: handles.leetcode,
+        rating: null,
+        maxRating: null,
+        rank: "CONNECTED",
+        problemsSolved: 0,
+        lastSyncedAt: new Date().toISOString(),
+        streak: {
           platform: "leetcode",
-          handle: handles.leetcode,
-          rating: null,
-          maxRating: null,
-          rank: "ACTIVE",
-          problemsSolved: 111,
-          lastSyncedAt: new Date().toISOString(),
-          streak: {
-            platform: "leetcode",
-            currentStreak: 5,
-            longestStreak: 14,
-            totalActiveDays: 22,
-          },
-        };
+          currentStreak: 0,
+          longestStreak: 0,
+          totalActiveDays: 0,
+        },
+      });
+    }
+  }
 
-  // CodeChef separate accounts:
-  const ccStatsArray: PlatformStats[] =
-    ccRes.status === "fulfilled"
-      ? ccRes.value
-      : [
-          {
+  // 2. CodeChef (if configured)
+  if (handles.codechef && handles.codechef.length > 0) {
+    try {
+      const ccAccounts = await fetchCodeChefStats(handles.codechef, options);
+      platforms.push(...ccAccounts);
+    } catch {
+      for (const ccHandle of handles.codechef) {
+        if (ccHandle.trim()) {
+          platforms.push({
             platform: "codechef",
-            handle: "each_twirl_69",
-            rating: 1461,
-            maxRating: 1461,
-            rank: "2★ Div 3",
-            problemsSolved: 91,
-            lastSyncedAt: new Date().toISOString(),
-            streak: { platform: "codechef", currentStreak: 3, longestStreak: 12, totalActiveDays: 24 },
-          },
-          {
-            platform: "codechef",
-            handle: "iiitdw24bcs076",
+            handle: ccHandle,
             rating: null,
             maxRating: null,
-            rank: "IIIT DHARWAD",
-            problemsSolved: 88,
+            rank: "CONNECTED",
+            problemsSolved: 0,
             lastSyncedAt: new Date().toISOString(),
-            streak: { platform: "codechef", currentStreak: 2, longestStreak: 8, totalActiveDays: 14 },
-          },
-        ];
+          });
+        }
+      }
+    }
+  }
 
-  const gfgStats: PlatformStats =
-    gfgRes.status === "fulfilled"
-      ? gfgRes.value
-      : {
-          platform: "gfg",
-          handle: handles.gfg,
-          rating: null,
-          maxRating: null,
-          rank: "Coding Score: 354",
-          problemsSolved: 116,
-          lastSyncedAt: new Date().toISOString(),
-          streak: {
-            platform: "gfg",
-            currentStreak: 4,
-            longestStreak: 16,
-            totalActiveDays: 45,
-          },
-        };
+  // 3. GeeksforGeeks (if configured)
+  if (handles.gfg && handles.gfg.trim()) {
+    try {
+      const gfgRes = await fetchGfgStats(handles.gfg, options);
+      platforms.push(gfgRes);
+    } catch {
+      platforms.push({
+        platform: "gfg",
+        handle: handles.gfg,
+        rating: null,
+        maxRating: null,
+        rank: "CONNECTED",
+        problemsSolved: 0,
+        lastSyncedAt: new Date().toISOString(),
+      });
+    }
+  }
 
-  const ghStats: PlatformStats =
-    ghRes.status === "fulfilled"
-      ? ghRes.value.stats
-      : {
-          platform: "github",
-          handle: handles.github,
-          rating: null,
-          maxRating: null,
-          rank: "35 REPOSITORIES",
-          problemsSolved: 512,
-          lastSyncedAt: new Date().toISOString(),
-          streak: {
-            platform: "github",
-            currentStreak: 3,
-            longestStreak: 46,
-            totalActiveDays: 134,
-          },
-        };
+  // 4. Codeforces (if configured)
+  if (handles.codeforces && handles.codeforces.trim() && handles.codeforces !== "pending_setup") {
+    try {
+      const cfRes = await fetchCodeforcesStats(handles.codeforces, options);
+      platforms.push(cfRes);
+    } catch {
+      platforms.push({
+        platform: "codeforces",
+        handle: handles.codeforces,
+        rating: null,
+        maxRating: null,
+        rank: "CONNECTED",
+        problemsSolved: 0,
+        lastSyncedAt: new Date().toISOString(),
+      });
+    }
+  }
 
-  // Return each account as its own separate panel!
-  return [cfStats, lcStats, ...ccStatsArray, gfgStats, ghStats];
+  // 5. GitHub (ONLY if user explicitly provided a handle)
+  if (handles.github && handles.github.trim() && handles.github !== "pending_setup") {
+    try {
+      const ghRes = await fetchGitHubStats(handles.github, options);
+      if (ghRes && ghRes.stats.handle !== "Not Connected") {
+        platforms.push(ghRes.stats);
+      }
+    } catch {
+      // Non-fatal
+    }
+  }
+
+  return platforms;
 }
 
 export async function fetchRealStreakData(
@@ -142,78 +130,48 @@ export async function fetchRealStreakData(
     ...customHandles,
   };
 
-  const [lcRes, ghRes, ccRes] = await Promise.allSettled([
-    fetchLeetCodeStatsWithCalendar(handles.leetcode, options),
-    fetchGitHubStats(handles.github, options),
-    fetchCodeChefStatsWithCalendar(handles.codechef, options),
-  ]);
+  const lcDates = new Set<string>();
+  const ghDates = new Set<string>();
+  const ccDates = new Set<string>();
 
-  const lcDates = lcRes.status === "fulfilled" ? lcRes.value.activeDates : new Set<string>();
-  const ghDates = ghRes.status === "fulfilled" ? ghRes.value.activeDates : new Set<string>();
-  const ccDates = ccRes.status === "fulfilled" ? ccRes.value.activeDates : new Set<string>();
+  const promises: Promise<unknown>[] = [];
+
+  if (handles.leetcode && handles.leetcode.trim()) {
+    promises.push(
+      fetchLeetCodeStatsWithCalendar(handles.leetcode, options)
+        .then((res) => {
+          res.activeDates.forEach((d) => lcDates.add(d));
+        })
+        .catch(() => {})
+    );
+  }
+
+  if (handles.github && handles.github.trim()) {
+    promises.push(
+      fetchGitHubStats(handles.github, options)
+        .then((res) => {
+          if (res?.activeDates) {
+            res.activeDates.forEach((d) => ghDates.add(d));
+          }
+        })
+        .catch(() => {})
+    );
+  }
+
+  if (handles.codechef && handles.codechef.length > 0) {
+    promises.push(
+      fetchCodeChefStatsWithCalendar(handles.codechef, options)
+        .then((res) => {
+          res.activeDates.forEach((d) => ccDates.add(d));
+        })
+        .catch(() => {})
+    );
+  }
+
+  await Promise.allSettled(promises);
 
   const totalDays = 371; // 53 weeks * 7 days
   const now = new Date();
-
-  // 1. Build Calibrated GfG Active Set (Exactly 45 active days in realistic clusters):
-  // - 4 days for current streak (days 0..3)
-  // - 16 days for longest peak streak (days 45..60)
-  // - 25 days in natural 3-4 day multi-day study bursts across different days of the week
-  const gfgDates = new Set<string>();
-  const gfgDayOffsets = [
-    // Current streak (4 days)
-    0, 1, 2, 3,
-    // Peak longest streak (16 days)
-    45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60,
-    // Burst 1 (4 days)
-    15, 16, 17, 18,
-    // Burst 2 (3 days)
-    27, 28, 29,
-    // Burst 3 (4 days)
-    80, 81, 82, 83,
-    // Burst 4 (3 days)
-    110, 111, 112,
-    // Burst 5 (4 days)
-    135, 136, 137, 138,
-    // Burst 6 (3 days)
-    170, 171, 172,
-    // Burst 7 (4 days)
-    215, 216, 217, 218,
-  ]; // Exactly 4 + 16 + 4 + 3 + 4 + 3 + 4 + 3 + 4 = 45 days
-  for (const offset of gfgDayOffsets) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - offset);
-    gfgDates.add(d.toISOString().split("T")[0]);
-  }
-
-  // 2. Build Calibrated CodeChef Active Set (Target ~38 active days across 2 accounts):
-  // - Incorporate all real parsed dates from userDailySubmissionsStats
-  // - Current streak (last 3 days)
-  // - Peak record streak (12 days)
-  // - CodeChef Starters contest Wednesdays (+ adjacent practice) to reach 38 days
-  const ccAllDates = new Set<string>(ccDates);
-  // Current streak (3 days)
-  for (let i = 0; i < 3; i++) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    ccAllDates.add(d.toISOString().split("T")[0]);
-  }
-  // Record longest streak (12 days)
-  for (let i = 75; i < 87; i++) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    ccAllDates.add(d.toISOString().split("T")[0]);
-  }
-  // Add Wednesday contest dates and adjacent practice sessions until reaching 38 active days
-  for (let i = 4; i < totalDays && ccAllDates.size < 38; i++) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    const dayOfWeek = d.getDay();
-    // Wednesday is CodeChef Starters day (dayOfWeek === 3)
-    if (dayOfWeek === 3 || dayOfWeek === 4) {
-      ccAllDates.add(d.toISOString().split("T")[0]);
-    }
-  }
 
   const combinedHistory: { date: string; solved: boolean }[] = [];
   const lcHistory: { date: string; solved: boolean }[] = [];
@@ -228,8 +186,8 @@ export async function fetchRealStreakData(
 
     const isGhActive = ghDates.has(dateStr);
     const isLcActive = lcDates.has(dateStr);
-    const isCcActive = ccAllDates.has(dateStr);
-    const isGfgActive = gfgDates.has(dateStr);
+    const isCcActive = ccDates.has(dateStr);
+    const isGfgActive = false;
 
     const isAnyActive = isGhActive || isLcActive || isCcActive || isGfgActive;
 
@@ -249,11 +207,21 @@ export async function fetchRealStreakData(
       break;
     }
   }
-  if (currentStreak === 0) currentStreak = 7;
+
+  let longestStreak = 0;
+  let tempStreak = 0;
+  for (let i = 0; i < combinedHistory.length; i++) {
+    if (combinedHistory[i].solved) {
+      tempStreak++;
+      if (tempStreak > longestStreak) longestStreak = tempStreak;
+    } else {
+      tempStreak = 0;
+    }
+  }
 
   return {
     currentStreak,
-    longestStreak: 34,
+    longestStreak,
     lastActiveDate: now.toISOString().split("T")[0],
     history: combinedHistory,
     platformHistories: {
