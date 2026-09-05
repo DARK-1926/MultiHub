@@ -34,6 +34,10 @@ export const PlatformRow: React.FC<PlatformRowProps> = ({ stats, index }) => {
   let leadingMetric = "UNRATED";
   if (stats.platform === "github") {
     leadingMetric = `${stats.problemsSolved} COMMITS`;
+  } else if (stats.platform === "gfg") {
+    leadingMetric = stats.rank?.includes("Rank #")
+      ? stats.rank.split("·")[0].trim()
+      : `${stats.problemsSolved} SOLVED`;
   } else if (stats.rating !== null) {
     leadingMetric = stats.rating.toString();
   } else if (stats.rank) {

@@ -4,13 +4,13 @@ import { ConnectorOptions, AggregatedStatsResult } from "./types";
 import { fetchCodeforcesStats } from "./codeforces";
 import { fetchLeetCodeStatsWithCalendar } from "./leetcode";
 import { fetchCodeChefStats, fetchCodeChefStatsWithCalendar } from "./codechef";
-import { fetchGfgStats } from "./gfg";
+import { fetchGfgStats, fetchGfgStatsWithCalendar } from "./gfg";
 import { fetchGitHubStats } from "./github";
 
 export { fetchCodeforcesStats } from "./codeforces";
 export { fetchLeetCodeStats } from "./leetcode";
 export { fetchCodeChefStats } from "./codechef";
-export { fetchGfgStats } from "./gfg";
+export { fetchGfgStats, fetchGfgStatsWithCalendar } from "./gfg";
 export { fetchGitHubStats } from "./github";
 
 export async function fetchAllPlatformStats(
@@ -133,6 +133,7 @@ export async function fetchRealStreakData(
   const lcDates = new Set<string>();
   const ghDates = new Set<string>();
   const ccDates = new Set<string>();
+  const gfgDates = new Set<string>();
 
   const promises: Promise<unknown>[] = [];
 
@@ -168,6 +169,18 @@ export async function fetchRealStreakData(
     );
   }
 
+  if (handles.gfg && handles.gfg.trim()) {
+    promises.push(
+      fetchGfgStatsWithCalendar(handles.gfg, options)
+        .then((res) => {
+          if (res?.activeDates) {
+            res.activeDates.forEach((d) => gfgDates.add(d));
+          }
+        })
+        .catch(() => {})
+    );
+  }
+
   await Promise.allSettled(promises);
 
   const totalDays = 371; // 53 weeks * 7 days
@@ -187,7 +200,7 @@ export async function fetchRealStreakData(
     const isGhActive = ghDates.has(dateStr);
     const isLcActive = lcDates.has(dateStr);
     const isCcActive = ccDates.has(dateStr);
-    const isGfgActive = false;
+    const isGfgActive = gfgDates.has(dateStr);
 
     const isAnyActive = isGhActive || isLcActive || isCcActive || isGfgActive;
 

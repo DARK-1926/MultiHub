@@ -90,7 +90,15 @@ export async function POST(req: NextRequest) {
     }
 
     const gfg = platforms.find((p) => p.platform === "gfg");
-    const gfgDossier = gfg ? `Handle @${gfg.handle}: ${gfg.problemsSolved} Solved | Score: ${gfg.rank || "Active"}` : "Not connected";
+    let gfgDossier = "Not connected";
+    if (gfg) {
+      const b = gfg.difficultyBreakdown;
+      const bStr = b ? ` (${b.easy} Easy/Basic, ${b.medium} Medium, ${b.hard} Hard)` : "";
+      const recent = gfg.recentSubmissions?.length
+        ? `\n  * Latest Solved: ${gfg.recentSubmissions.map((s) => `"${s}"`).join(", ")}`
+        : "";
+      gfgDossier = `Handle @${gfg.handle}: ${gfg.problemsSolved} Solved${bStr} | ${gfg.rank || "Active"}${recent}`;
+    }
 
     const gh = platforms.find((p) => p.platform === "github");
     const ghDossier = gh && gh.handle !== "Not Connected"
